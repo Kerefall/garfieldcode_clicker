@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 public class Game : MonoBehaviour
 {
 
-
+    private int bebra = 0;
     [SerializeField] public GameObject animationMoneyTextPrefab;
 
     [SerializeField] private int money = 0;
@@ -30,7 +30,7 @@ public class Game : MonoBehaviour
 
 
 
-    // Визуальная хуйня типо +1 +1 +5 +5 
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ +1 +1 +5 +5 
     public void EffectsToMoneyGain(int value)
     {
         
@@ -54,7 +54,7 @@ public class Game : MonoBehaviour
         Destroy(obj);
     }
 
-    // Действия при клике 
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 
     public void Click()
     {
         money += clickGain ;
@@ -64,7 +64,7 @@ public class Game : MonoBehaviour
     }
 
 
-    // Анимация при клике на монетку
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     private IEnumerator ButtonAnimation()
     {
         Vector3 originalScale = transform.localScale;
@@ -74,7 +74,7 @@ public class Game : MonoBehaviour
 
     }
     
-    // Улучшение Клика
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     public void UpgradeClick()
     {
         if (upgradeClickLvl <= 10)
@@ -89,7 +89,7 @@ public class Game : MonoBehaviour
             }
             else
             {
-                Debug.Log("Недостаточно средств");
+                Debug.Log("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             }
         }
         else
@@ -104,12 +104,12 @@ public class Game : MonoBehaviour
             }
             else
             {
-                Debug.Log("Недостаточно средств");
+                Debug.Log("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             }
         }
     }
 
-    // пассивный доход
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     public void BuyAutoClicker()
     {
         if (money >= autoClickerCost)
@@ -123,11 +123,11 @@ public class Game : MonoBehaviour
     }
     public void UpdateAutoClickerText()
     {
-       // сюда позже запихаем счетчик автокликера
+       // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     }
 
 
-    // пассивный доход это 
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ 
     private IEnumerator AutoGenerateMoney()
     {
         while (true)
@@ -148,7 +148,7 @@ public class Game : MonoBehaviour
     }
     private void UpdateUpgradeText()
     {
-        upgradeText.text = "Улучшить ($" + upgradeClickCost + ") | Уровень: " + upgradeClickLvl;
+        upgradeText.text = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ($" + upgradeClickCost + ") | пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + upgradeClickLvl;
     }
     
     public void Settings()
