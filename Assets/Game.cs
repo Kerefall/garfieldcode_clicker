@@ -2,11 +2,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Unity.VisualScripting;
+using System;
 
 public class Game : MonoBehaviour
 {
 
-    private int bebra = 0;
     [SerializeField] public GameObject animationMoneyTextPrefab;
 
     [SerializeField] private int money = 0;
@@ -43,7 +43,7 @@ public class Game : MonoBehaviour
     private IEnumerator MoveAndDelete(GameObject obj, float durationTime = 1f)
     {
         RectTransform rectTransform = obj.GetComponent<RectTransform>();
-        Vector2 randomDirection = Random.insideUnitCircle.normalized * 490f;
+        Vector2 randomDirection = UnityEngine.Random.insideUnitCircle.normalized * 490f;
         float elapsedTime = 0f;
         while (elapsedTime < durationTime)
         {
@@ -140,6 +140,24 @@ public class Game : MonoBehaviour
             }
             yield return new WaitForSeconds(autoClickRate);
         }
+    }
+
+    private void OnAplicationQuit() 
+        => PlayerPrefs.SetString("LastPlayedTime", DateTime.UtcNow.ToString());
+
+    private void CalculateOfflineIncome()
+    {
+        var lastPlayedTime = DateTime.Parse(PlayerPrefs.GetString("LastPlayedTime"), null);
+
+        if (lastPlayedTime == null) return;
+
+        var maxTimeOut = 6 * 60 * 60;
+        var secondsOut = (DateTime.UtcNow - lastPlayedTime).TotalSeconds;
+
+        secondsOut = (secondsOut > maxTimeOut) ? maxTimeOut : secondsOut; // condition ? consequent : alternative 
+
+        money += (int)secondsOut * autoClickValue;
+        Debug.Log($"Time out: {secondsOut} outMoney: {(int)secondsOut * autoClickValue}");
     }
 
     private void UpdateMoneyText()
