@@ -1,38 +1,48 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class Clicker : MonoBehaviour
 {
     public static Clicker Instance;
 
-    private float Money
+    public float Money // Total user's money
     {
-        get => PlayerPrefs.GetFloat("Money", 0);
+        get => PlayerPrefs.GetFloat("Money", 1);
         set => PlayerPrefs.SetFloat("Money", value);
     }
 
-    private int ClickGain
+    private int ClickGain 
     {
-        get => PlayerPrefs.GetInt("ClickGain", 0);
+        get => PlayerPrefs.GetInt("ClickGain", 1);
         set => PlayerPrefs.SetInt("ClickGain", value);
     }
 
-    [SerializeField] private Text moneyText;
 
+    [SerializeField]
+    private TextMeshProUGUI moneyText;
 
-    private void Start()
+    public void Awake() // For using methods of this class in other files
     {
-        UpdateUI();
+        Instance = this;
     }
 
-    public void ClickedCoin()
+    public void Start()
     {
-        Money += ClickGain;
-        UpdateUI();
+        Update();
     }
 
-    private void UpdateUI()
+    public void Click()
     {
-        moneyText.text = (int)Money + "$";
+        Money += 1 * ClickGain;
+        EffectController.Instance.SetClickEffect(1 * ClickGain);
+        Update();
     }
+
+    public void Update()
+    {
+        moneyText.text = "$" + Money;
+    }
+
 }
