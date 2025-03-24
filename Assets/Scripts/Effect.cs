@@ -10,7 +10,6 @@ public class Effect : MonoBehaviour
     [SerializeField] private CanvasGroup group;
     
     private Vector3 randomDirection;
-
     private float speedAnimation;
 
     private void Awake()
