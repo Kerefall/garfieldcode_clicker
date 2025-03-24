@@ -9,9 +9,6 @@ public class ClickAnimation : MonoBehaviour
 {
     private Vector2 defaultScale;
     private Vector2 clickedScale;
-
-    
-
     private void Awake()
     {
         defaultScale = transform.localScale;

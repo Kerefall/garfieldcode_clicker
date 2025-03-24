@@ -7,9 +7,9 @@ public class Clicker : MonoBehaviour
 {
     public static Clicker Instance;
 
-    public float Money // Total user's money
+    private float Money // Total user's money
     {
-        get => PlayerPrefs.GetFloat("Money", 1);
+        get => PlayerPrefs.GetFloat("Money", 0);
         set => PlayerPrefs.SetFloat("Money", value);
     }
 
@@ -35,8 +35,8 @@ public class Clicker : MonoBehaviour
 
     public void Click()
     {
-        Money += 1 * ClickGain;
-        EffectController.Instance.SetClickEffect(1 * ClickGain);
+        Money += ClickGain;
+        EffectController.Instance.SetClickEffect(ClickGain);
         Update();
     }
 

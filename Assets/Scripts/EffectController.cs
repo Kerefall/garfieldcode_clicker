@@ -14,9 +14,7 @@ public class EffectController : MonoBehaviour
 
     public void SetClickEffect(int value)
     {
-        Debug.Log("Set click effect");
         var pref = Instantiate(effectPref, transform, false);
-        pref.SetPosition(new Vector2(400, 400));
         pref.SetValue(value);
     }
 
