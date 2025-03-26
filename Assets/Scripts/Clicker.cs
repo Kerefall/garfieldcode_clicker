@@ -55,9 +55,7 @@ public class Clicker : MonoBehaviour
     }
 
     private void OnApplicationQuit()
-    {
-        PlayerPrefs.SetString("LastPlayedTime", DateTime.UtcNow.ToString());
-    }
+        => PlayerPrefs.SetString("LastPlayedTime", DateTime.UtcNow.ToString());
 
     private void CalculateOfflineMoney()
     {
