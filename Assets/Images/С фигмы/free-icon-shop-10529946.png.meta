@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2ae8e90b90422f741ad8a481caeaf905
+guid: b87ec7b5538a8b348880af1a5f88452e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8358156770073017313
-    second: free-icon-newspaper-2035588_0
+      213: 5023374734211585263
+    second: free-icon-shop-10529946_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -109,43 +109,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: free-icon-newspaper-2035588_0
+      name: free-icon-shop-10529946_0
       rect:
         serializedVersion: 2
-        x: 23
-        y: 23
-        width: 466
-        height: 466
+        x: 7
+        y: 7
+        width: 498
+        height: 498
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f1485c673bcd10c80800000000000000
-      internalID: -8358156770073017313
+      spriteID: fe49a5ea4bc96b540800000000000000
+      internalID: 5023374734211585263
       vertices: []
       indices: 
       edges: []
@@ -173,8 +147,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      free-icon-newspaper-2035588_0: -8358156770073017313
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using System.Globalization;
 
 public class Clicker : MonoBehaviour
 {
@@ -50,7 +51,7 @@ public class Clicker : MonoBehaviour
 
     public void Update()
     {
-        moneyText.text = "$" + FormatNumber(Money);
+        moneyText.text = FormatNumber(Money);
     }
 
     private void OnApplicationQuit()
@@ -78,20 +79,8 @@ public class Clicker : MonoBehaviour
 
     private string FormatNumber(float number)
     {
-
-        // Define a set of suffixes
-        string[] suffixes = { "K", "M", "B", "T" };
-        int suffixIndex = 0;
-
-        // As long as the number is greater than 1000, divide it by 1000 and increase the suffix index
-        while (number >= 1000 && suffixIndex < suffixes.Length)
-        {
-            number /= 1000;
-            suffixIndex++;
-        }
-
-        // format number and add suffix
-        return $"{number:0.0}{suffixes[suffixIndex - 1]}";
+        CultureInfo culture = new CultureInfo("en-US");
+        return number.ToString("N2", culture);
     }
 
 }

@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 2ae8e90b90422f741ad8a481caeaf905
+guid: f69b5e1859b630a459cda41e8dffd712
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8358156770073017313
-    second: free-icon-newspaper-2035588_0
+      213: 587546234409254818
+    second: free-icon-payment-method-4151546_0
+  - first:
+      213: 9121072676447410894
+    second: free-icon-payment-method-4151546_1
+  - first:
+      213: 1573579950825734681
+    second: free-icon-payment-method-4151546_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -109,43 +115,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: free-icon-newspaper-2035588_0
+      name: free-icon-payment-method-4151546_0
       rect:
         serializedVersion: 2
-        x: 23
-        y: 23
-        width: 466
-        height: 466
+        x: 0
+        y: 22
+        width: 512
+        height: 467
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +134,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f1485c673bcd10c80800000000000000
-      internalID: -8358156770073017313
+      spriteID: 2aff41fef22672800800000000000000
+      internalID: 587546234409254818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: free-icon-payment-method-4151546_1
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 467
+        width: 23
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eca5b22164f849e70800000000000000
+      internalID: 9121072676447410894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: free-icon-payment-method-4151546_2
+      rect:
+        serializedVersion: 2
+        x: 375
+        y: 467
+        width: 33
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91205aac0aa76d510800000000000000
+      internalID: 1573579950825734681
       vertices: []
       indices: 
       edges: []
@@ -173,8 +197,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      free-icon-newspaper-2035588_0: -8358156770073017313
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
