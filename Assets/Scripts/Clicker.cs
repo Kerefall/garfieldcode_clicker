@@ -9,13 +9,13 @@ public class Clicker : MonoBehaviour
 {
     public static Clicker Instance;
 
-    private float Money // Total user's money
+    public float Money // Total user's money
     {
         get => PlayerPrefs.GetFloat("Money", 0);
         set => PlayerPrefs.SetFloat("Money", value);
     }
 
-    private int ClickGain 
+    public int ClickGain 
     {
         get => PlayerPrefs.GetInt("ClickGain", 1);
         set => PlayerPrefs.SetInt("ClickGain", value);

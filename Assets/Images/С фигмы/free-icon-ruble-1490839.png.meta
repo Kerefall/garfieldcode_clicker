@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      free-icon-ruble-1490839_0: -8149996315249813474
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

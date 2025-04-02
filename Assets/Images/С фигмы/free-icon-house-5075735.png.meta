@@ -172,7 +172,9 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      free-icon-house-5075735_0: 1808451174276583438
+      free-icon-house-5075735_1: 396763543365418752
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

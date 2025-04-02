@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      free-icon-news-9305645_0: 8658672457212632626
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

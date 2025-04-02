@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      free-icon-shop-10529946 1_0: 4323844987959742278
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
