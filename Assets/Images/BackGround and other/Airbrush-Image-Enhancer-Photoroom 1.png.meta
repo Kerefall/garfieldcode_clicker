@@ -173,7 +173,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Airbrush-Image-Enhancer-Photoroom 1_0: -6188399884855709712
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
