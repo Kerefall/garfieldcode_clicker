@@ -3,9 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
 
-public class EnhancedStockMarketGame : MonoBehaviour
+public class StockMarketGame : MonoBehaviour
 {
     [Header("Основные элементы UI")]
     public GameObject gamePanel;
@@ -21,6 +20,8 @@ public class EnhancedStockMarketGame : MonoBehaviour
     public Button buyButton;
     public Button sellButton;
     public Button newDayButton;
+    public Button nextCompanyButton;
+    public Button prevCompanyButton;
     public Button level1Button;
     public Button level2Button;
     public Button level3Button;
@@ -35,16 +36,21 @@ public class EnhancedStockMarketGame : MonoBehaviour
     public float[] initialBalances = { 5000f, 10000f, 20000f };
     public int maxDays = 30;
     public float newsEffectDuration = 3f;
+    public float priceChangeDuration = 0.5f;
 
     [System.Serializable]
     public class Company
     {
         public string name;
+        [TextArea(2, 5)]
         public string description;
         public float initialPrice;
+        [Range(0.01f, 0.5f)]
         public float baseVolatility;
         public Color companyColor;
+        [TextArea(1, 3)]
         public string[] positiveNews;
+        [TextArea(1, 3)]
         public string[] negativeNews;
     }
 
@@ -59,7 +65,7 @@ public class EnhancedStockMarketGame : MonoBehaviour
     private bool gameActive = false;
     private int currentCompanyIndex = 0;
     private int currentLevel = 0;
-    private Tweener priceTweener;
+    private Coroutine priceAnimationCoroutine;
     private Coroutine newsCoroutine;
 
     void Start()
@@ -67,6 +73,8 @@ public class EnhancedStockMarketGame : MonoBehaviour
         buyButton.onClick.AddListener(BuyShares);
         sellButton.onClick.AddListener(SellShares);
         newDayButton.onClick.AddListener(NewDay);
+        nextCompanyButton.onClick.AddListener(() => SwitchCompany(1));
+        prevCompanyButton.onClick.AddListener(() => SwitchCompany(-1));
         level1Button.onClick.AddListener(() => StartLevel(0));
         level2Button.onClick.AddListener(() => StartLevel(1));
         level3Button.onClick.AddListener(() => StartLevel(2));
@@ -118,20 +126,22 @@ public class EnhancedStockMarketGame : MonoBehaviour
         companyInfoText.color = company.companyColor;
 
         UpdateUI();
+        ClearGraph();
+        AddPointToGraph(0, currentPrice);
     }
 
     void ValidateShareInput(string input)
     {
         if (string.IsNullOrEmpty(input)) return;
 
-        if (!int.TryParse(input, out int shares))
+        if (!int.TryParse(input, out _))
         {
             sharesInputField.text = "";
             return;
         }
 
         int maxAffordable = Mathf.FloorToInt(balance / currentPrice);
-        if (shares > maxAffordable)
+        if (!string.IsNullOrEmpty(input) && int.Parse(input) > maxAffordable)
         {
             sharesInputField.text = maxAffordable.ToString();
         }
@@ -139,16 +149,16 @@ public class EnhancedStockMarketGame : MonoBehaviour
 
     void UpdateUI()
     {
-        balanceText.text = $"Баланс: {balance:C}";
+        balanceText.text = $"Баланс: {balance:C2}";
         sharesText.text = $"Акций: {sharesOwned}";
-        currentPriceText.text = $"Цена: {currentPrice:C}/акция";
+        currentPriceText.text = $"Цена: {currentPrice:C2}/акция";
         dayText.text = $"День: {currentDay}/{maxDays}";
 
         if (sharesOwned > 0)
         {
             float currentValue = sharesOwned * currentPrice;
             float profit = currentValue - (sharesOwned * buyPrice);
-            profitText.text = $"Прибыль: {profit:C} ({profit / (sharesOwned * buyPrice) * 100:F1}%)";
+            profitText.text = $"Прибыль: {profit:C2} ({profit / (sharesOwned * buyPrice) * 100:F1}%)";
             profitText.color = profit >= 0 ? Color.green : Color.red;
         }
         else
@@ -157,7 +167,6 @@ public class EnhancedStockMarketGame : MonoBehaviour
             profitText.color = Color.white;
         }
 
-        // Обновляем максимальное значение в поле ввода
         int maxShares = Mathf.FloorToInt(balance / currentPrice);
         sharesInputField.placeholder.GetComponent<TextMeshProUGUI>().text = $"Макс: {maxShares}";
     }
@@ -183,7 +192,7 @@ public class EnhancedStockMarketGame : MonoBehaviour
             buyButton.interactable = false;
             newDayButton.interactable = true;
 
-            Debug.Log($"Куплено {sharesToBuy} акций {companies[currentCompanyIndex].name} по {currentPrice:C}");
+            Debug.Log($"Куплено {sharesToBuy} акций {companies[currentCompanyIndex].name} по {currentPrice:C2}");
         }
 
         sharesInputField.text = "";
@@ -195,7 +204,7 @@ public class EnhancedStockMarketGame : MonoBehaviour
         if (sharesOwned > 0)
         {
             balance += sharesOwned * currentPrice;
-            Debug.Log($"Продано {sharesOwned} акций {companies[currentCompanyIndex].name} по {currentPrice:C}");
+            Debug.Log($"Продано {sharesOwned} акций {companies[currentCompanyIndex].name} по {currentPrice:C2}");
             sharesOwned = 0;
             sellButton.interactable = false;
             buyButton.interactable = true;
@@ -218,17 +227,10 @@ public class EnhancedStockMarketGame : MonoBehaviour
         currentDay++;
         float newPrice = CalculateNewPrice(currentPrice);
 
-        // Анимация изменения цены
-        if (priceTweener != null && priceTweener.IsActive())
-            priceTweener.Kill();
+        if (priceAnimationCoroutine != null)
+            StopCoroutine(priceAnimationCoroutine);
 
-        priceTweener = DOTween.To(() => currentPrice, x => currentPrice = x, newPrice, 0.5f)
-            .OnUpdate(UpdateUI)
-            .OnComplete(() => {
-                priceHistory.Add(currentPrice);
-                AddPointToGraph(currentDay, currentPrice);
-                CheckForNewsEvent();
-            });
+        priceAnimationCoroutine = StartCoroutine(AnimatePriceChange(currentPrice, newPrice));
 
         if (currentDay >= maxDays)
         {
@@ -239,23 +241,37 @@ public class EnhancedStockMarketGame : MonoBehaviour
         UpdateUI();
     }
 
+    IEnumerator AnimatePriceChange(float startPrice, float endPrice)
+    {
+        float elapsed = 0f;
+
+        while (elapsed < priceChangeDuration)
+        {
+            currentPrice = Mathf.Lerp(startPrice, endPrice, elapsed / priceChangeDuration);
+            elapsed += Time.deltaTime;
+            UpdateUI();
+            yield return null;
+        }
+
+        currentPrice = endPrice;
+        priceHistory.Add(currentPrice);
+        AddPointToGraph(currentDay, currentPrice);
+        CheckForNewsEvent();
+    }
+
     float CalculateNewPrice(float lastPrice)
     {
         Company company = companies[currentCompanyIndex];
 
-        // Базовое изменение цены
         float changePercent = 2f * company.baseVolatility * (Random.value - 0.5f);
         float newPrice = lastPrice * (1f + changePercent);
 
-        // Гарантируем, что цена не уйдет в ноль
         newPrice = Mathf.Max(newPrice, lastPrice * 0.1f);
-
         return newPrice;
     }
 
     void CheckForNewsEvent()
     {
-        // 30% вероятность новости
         if (Random.value > 0.3f) return;
 
         Company company = companies[currentCompanyIndex];
@@ -264,15 +280,13 @@ public class EnhancedStockMarketGame : MonoBehaviour
 
         if (Random.value > 0.5f && company.positiveNews.Length > 0)
         {
-            // Положительная новость
             newsMessage = company.positiveNews[Random.Range(0, company.positiveNews.Length)];
-            effectMultiplier = 1.5f + Random.value; // 1.5x - 2.5x
+            effectMultiplier = 1.5f + Random.value;
         }
         else if (company.negativeNews.Length > 0)
         {
-            // Отрицательная новость
             newsMessage = company.negativeNews[Random.Range(0, company.negativeNews.Length)];
-            effectMultiplier = 0.2f + Random.value * 0.3f; // 0.2x - 0.5x
+            effectMultiplier = 0.2f + Random.value * 0.3f;
         }
 
         if (!string.IsNullOrEmpty(newsMessage))
@@ -290,46 +304,35 @@ public class EnhancedStockMarketGame : MonoBehaviour
         newsText.color = effectMultiplier > 1f ? Color.green : Color.red;
         newsText.gameObject.SetActive(true);
 
-        // Применяем эффект новости
-        float originalPrice = currentPrice;
         float targetPrice = currentPrice * effectMultiplier;
 
-        priceTweener = DOTween.To(() => currentPrice, x => currentPrice = x, targetPrice, 0.5f)
-            .OnUpdate(UpdateUI);
+        yield return StartCoroutine(AnimatePriceChange(currentPrice, targetPrice));
 
         yield return new WaitForSeconds(newsEffectDuration);
 
-        // Возвращаем цену к "нормальному" уровню с некоторой коррекцией
-        float newBasePrice = targetPrice * (0.8f + Random.value * 0.4f); // 0.8x - 1.2x от новой цены
-        priceTweener = DOTween.To(() => currentPrice, x => currentPrice = x, newBasePrice, 0.5f)
-            .OnUpdate(UpdateUI)
-            .OnComplete(() => {
-                newsText.gameObject.SetActive(false);
-                priceHistory[priceHistory.Count - 1] = currentPrice; // Обновляем последнюю цену
-            });
+        float newBasePrice = targetPrice * (0.8f + Random.value * 0.4f);
+        yield return StartCoroutine(AnimatePriceChange(currentPrice, newBasePrice));
+
+        newsText.gameObject.SetActive(false);
+        priceHistory[priceHistory.Count - 1] = currentPrice;
     }
 
     void AddPointToGraph(int day, float price)
     {
-        // Нормализуем значения для позиционирования на графике
         float xPosition = day * (graphContainer.rect.width / maxDays);
 
-        // Находим минимальную и максимальную цену для масштабирования
         float minPrice = Mathf.Min(priceHistory.ToArray());
         float maxPrice = Mathf.Max(priceHistory.ToArray());
-        float priceRange = maxPrice - minPrice;
-        if (priceRange == 0) priceRange = 1f;
+        float priceRange = Mathf.Max(0.1f, maxPrice - minPrice);
 
         float yPosition = ((price - minPrice) / priceRange) * graphContainer.rect.height;
 
-        // Создаем точку
         GameObject point = Instantiate(pointPrefab, graphContainer);
         RectTransform pointRect = point.GetComponent<RectTransform>();
         pointRect.anchoredPosition = new Vector2(xPosition, yPosition);
         point.GetComponent<Image>().color = companies[currentCompanyIndex].companyColor;
         graphElements.Add(point);
 
-        // Соединяем точки линиями
         if (day > 0)
         {
             float prevX = (day - 1) * (graphContainer.rect.width / maxDays);
@@ -337,7 +340,7 @@ public class EnhancedStockMarketGame : MonoBehaviour
 
             GameObject line = Instantiate(linePrefab, graphContainer);
             RectTransform lineRect = line.GetComponent<RectTransform>();
-            Vector2 dir = (new Vector2(xPosition, yPosition) - new Vector2(prevX, prevY);
+            Vector2 dir = (new Vector2(xPosition, yPosition) - new Vector2(prevX, prevY));
             float distance = dir.magnitude;
 
             lineRect.sizeDelta = new Vector2(distance, 2f);
@@ -372,8 +375,8 @@ public class EnhancedStockMarketGame : MonoBehaviour
 
     public void ResetGame()
     {
-        if (priceTweener != null && priceTweener.IsActive())
-            priceTweener.Kill();
+        if (priceAnimationCoroutine != null)
+            StopCoroutine(priceAnimationCoroutine);
 
         if (newsCoroutine != null)
             StopCoroutine(newsCoroutine);
