@@ -38,7 +38,7 @@ public class BankSystem : MonoBehaviour
         depositButton.onClick.AddListener(CreateDeposit);
         withdrawButton.onClick.AddListener(WithdrawDeposit);
     }
-
+     
     private void UpdateUI()
     {
         currentBalanceText.text = $"Баланс: {playerBalance:F2}";
