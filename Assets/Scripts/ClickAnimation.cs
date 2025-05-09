@@ -1,6 +1,3 @@
-using System.Runtime.CompilerServices;
-using TMPro;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 // Script for animation of coin's size

@@ -1,0 +1,12 @@
+# ninja log v5
+50	330	7685229192099238	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	fa5ae345b9a6e168
+332	667	7685229194594245	C:/Users/KDFX Modes/Desktop/garfieldcode_clicker/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/173l604z/obj/arm64-v8a/libswappywrapper.so	f76c7737191e9071
+12	3454	7685229223157697	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	31d2fc702459b202
+44	3516	7685229223814759	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	fa210173cbf9201c
+18	3543	7685229224093340	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	b8c5197ba1abeaf0
+9	3576	7685229224461827	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	7be20d8557a95e9a
+0	3606	7685229224724052	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	dd193792d9f9fa0d
+35	3633	7685229225034550	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	b2cb29dc60aedd78
+23	4437	7685229232819111	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	40e2061ad771b425
+5	4592	7685229234592904	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	423956b933b6d7d8
+4593	4769	7685229236265698	C:/Users/KDFX Modes/Desktop/garfieldcode_clicker/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/173l604z/obj/arm64-v8a/libgame.so	d2b3d77bd6594f0c
