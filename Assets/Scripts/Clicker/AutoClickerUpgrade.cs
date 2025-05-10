@@ -28,7 +28,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
     {
         InitializeUpgrades();
         UpdateUI();
-        Update();
+        // Убрали вызов Update() здесь
     }
 
     private void Update()
@@ -43,7 +43,11 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
     private void InitializeUpgrades()
     {
-        if (upgrades == null) return;
+        if (upgrades == null || upgrades.Length == 0)
+        {
+            Debug.LogError("Upgrades array is not set or empty!");
+            return;
+        }
 
         for (int i = 0; i < upgrades.Length; i++)
         {
@@ -59,13 +63,28 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
                 upgrades[i].button.onClick.AddListener(() => BuyAutoClicker(index));
             }
         }
+
+        // Инициализируем общий пассивный доход при старте
+        UpdateTotalPassiveProfit();
     }
 
     private void BuyAutoClicker(int upgradeIndex)
     {
-        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length || upgrades[upgradeIndex] == null) return;
+        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length || upgrades[upgradeIndex] == null)
+        {
+            Debug.LogError($"Invalid upgrade index: {upgradeIndex}");
+            return;
+        }
 
         AutoClickerUpgrade upgrade = upgrades[upgradeIndex];
+
+        // Проверяем, что Clicker.Instance существует
+        if (Clicker.Instance == null)
+        {
+            Debug.LogError("Clicker.Instance is null!");
+            return;
+        }
+
         if (Clicker.Instance.Money >= upgrade.currentCost)
         {
             Clicker.Instance.Money -= upgrade.currentCost;
@@ -73,14 +92,23 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
             upgrade.currentCost = upgrade.baseCost * (upgrade.currentLevel + 1);
 
             PlayerPrefs.SetInt($"AutoClicker_{upgradeIndex}_Level", upgrade.currentLevel);
+            PlayerPrefs.Save(); // Явно сохраняем изменения
+
             UpdateTotalPassiveProfit();
             UpdateSingleUpgradeUI(upgradeIndex);
-            Clicker.Instance.Update();
+
+            // Обновляем UI Clicker'а, если такой метод существует
+            if (Clicker.Instance != null)
+            {
+                Clicker.Instance.Update(); // Переименовали для ясности
+            }
         }
     }
 
     private void ApplyPassiveIncome()
     {
+        if (upgrades == null || upgrades.Length == 0 || Clicker.Instance == null) return;
+
         float totalProfit = 0f;
         foreach (var upgrade in upgrades)
         {
@@ -93,12 +121,15 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         if (totalProfit > 0)
         {
             Clicker.Instance.Money += totalProfit * updateInterval;
-            Clicker.Instance.Update();
+            Clicker.Instance.Update(); // Обновляем UI после изменения денег
+            Debug.Log($"Applied passive income: {totalProfit * updateInterval}"); // Для отладки
         }
     }
 
     private void UpdateTotalPassiveProfit()
     {
+        if (upgrades == null || upgrades.Length == 0 || Clicker.Instance == null) return;
+
         float totalProfit = 0f;
         foreach (var upgrade in upgrades)
         {
@@ -112,6 +143,8 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
     private void UpdateUI()
     {
+        if (upgrades == null) return;
+
         for (int i = 0; i < upgrades.Length; i++)
         {
             UpdateSingleUpgradeUI(i);
@@ -129,13 +162,15 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         if (upgrade.levelText != null)
             upgrade.levelText.text = $"Ур. {upgrade.currentLevel}";
 
-        if (upgrade.button != null)
+        if (upgrade.button != null && Clicker.Instance != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
     }
 
     [ContextMenu("Сбросить все улучшения")]
     public void ResetAllUpgrades()
     {
+        if (upgrades == null) return;
+
         for (int i = 0; i < upgrades.Length; i++)
         {
             if (upgrades[i] != null)
@@ -145,6 +180,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
                 PlayerPrefs.DeleteKey($"AutoClicker_{i}_Level");
             }
         }
+        PlayerPrefs.Save();
         UpdateTotalPassiveProfit();
         UpdateUI();
     }
