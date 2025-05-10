@@ -17,7 +17,7 @@ public class PanelController : MonoBehaviour
 
     private void Start()
     {
-        MainPanel = GameObject.Find("MainPanel");
+        MainPanel = GameObject.Find("MainMenuPanel");
         foreach (var panelData in panels)
         {
             panelData.button.onClick.AddListener(() => TogglePanel(panelData.panel));
