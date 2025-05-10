@@ -40,6 +40,7 @@ public class Clicker : MonoBehaviour
     {
         Update();
         CalculateOfflineMoney();
+        
     }
 
     public void Click()
