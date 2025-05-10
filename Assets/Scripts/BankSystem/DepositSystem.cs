@@ -8,8 +8,8 @@ public class BankSystem : MonoBehaviour
 {
     [Header("UI Elements")]
     public GameObject depositPanel;
-    public InputField depositAmountInput; // Deposit
-    public InputField depositDurationInput; // Time vklada
+    public TMP_InputField depositAmountInput; // Deposit
+    public TMP_Dropdown depositDurationDropdown; // Time vklada
     public TextMeshProUGUI currentBalanceText;
     public TextMeshProUGUI depositBalanceText;
     public TextMeshProUGUI interestRateText;
@@ -26,7 +26,7 @@ public class BankSystem : MonoBehaviour
     private float playerBalance = 1000f;
     private float depositAmount = 0f;
     private float depositInterest = 0f;
-    private float depositDurationDays = 0f;
+    private int depositDurationDays = 0;
     private DateTime depositEndTime;
 
     private Coroutine interestCoroutine;
@@ -37,6 +37,11 @@ public class BankSystem : MonoBehaviour
         UpdateUI();
         depositButton.onClick.AddListener(CreateDeposit);
         withdrawButton.onClick.AddListener(WithdrawDeposit);
+        depositDurationDropdown.ClearOptions();
+        depositDurationDropdown.AddOptions(new System.Collections.Generic.List<string>
+        {
+            "1 мес€ц", "3 мес€ца", "6 мес€цев", "1 год", "2 года", "3 года", "5 лет"
+        });
     }
      
     private void UpdateUI()
@@ -58,9 +63,9 @@ public class BankSystem : MonoBehaviour
 
     public void CreateDeposit()
     {
-        if (float.TryParse(depositAmountInput.text, out float amount) &&
-            float.TryParse(depositDurationInput.text, out float durationDays))
+        if (float.TryParse(depositAmountInput.text, out float amount))
         {
+            var durationDays = depositDurationDropdown.value;
             if (amount <= 0 || durationDays <= 0) return;
 
             if (amount <= playerBalance && durationDays <= maxDepositDuration)
