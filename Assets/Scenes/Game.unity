@@ -2131,6 +2131,7 @@ RectTransform:
   - {fileID: 266848832}
   - {fileID: 1600097663}
   - {fileID: 755588782}
+  - {fileID: 1522057051}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -6542,13 +6543,14 @@ GameObject:
   - component: {fileID: 755496979}
   - component: {fileID: 755496981}
   - component: {fileID: 755496980}
+  - component: {fileID: 755496982}
   m_Layer: 5
   m_Name: InvestitionPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &755496979
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6608,6 +6610,47 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 755496978}
   m_CullTransparentMesh: 1
+--- !u!114 &755496982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755496978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 338240fe3ce2f904e9524fcde5c563b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gamePanel: {fileID: 755496978}
+  levelSelectionPanel: {fileID: 0}
+  balanceText: {fileID: 0}
+  sharesText: {fileID: 0}
+  currentPriceText: {fileID: 0}
+  profitText: {fileID: 0}
+  dayText: {fileID: 0}
+  companyInfoText: {fileID: 0}
+  newsText: {fileID: 0}
+  sharesInputField: {fileID: 0}
+  buyButton: {fileID: 0}
+  sellButton: {fileID: 0}
+  newDayButton: {fileID: 0}
+  nextCompanyButton: {fileID: 0}
+  prevCompanyButton: {fileID: 0}
+  level1Button: {fileID: 0}
+  level2Button: {fileID: 0}
+  level3Button: {fileID: 0}
+  graphContainer: {fileID: 0}
+  linePrefab: {fileID: 0}
+  pointPrefab: {fileID: 0}
+  initialBalances:
+  - 5000
+  - 10000
+  - 20000
+  maxDays: 30
+  newsEffectDuration: 3
+  priceChangeDuration: 0.5
+  companies: []
 --- !u!1 &755588781
 GameObject:
   m_ObjectHideFlags: 0
@@ -9880,7 +9923,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1156533381
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9893,7 +9936,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1522057051}
   - {fileID: 658349662}
   - {fileID: 684737167}
   - {fileID: 510849706}
@@ -10566,7 +10608,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1184598100
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14264,12 +14306,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1522057050}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1156533381}
+  m_Father: {fileID: 265525403}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
