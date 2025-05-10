@@ -21,7 +21,7 @@ public class Clicker : MonoBehaviour
         set => PlayerPrefs.SetInt("ClickGain", value);
     }
 
-    private float PassiveProfit // Passive money
+    public float PassiveProfit // Passive money
     {
         get => PlayerPrefs.GetFloat("PassiveProfit", 1);
         set => PlayerPrefs.SetFloat("PassiveProfit", value);

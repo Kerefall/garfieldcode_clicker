@@ -8407,7 +8407,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1156533381
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12753,72 +12753,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9d59b0c6d7154606a017f266ce9a3f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  incomeInterval: 1
-  incomePerSecondText: {fileID: 0}
   upgrades:
   - upgradeName: RentGameConsole
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 658349663}
+    profitPerSecond: 250
+    button: {fileID: 658349663}
     costText: {fileID: 1892787503}
     levelText: {fileID: 1178518337}
     currentLevel: 0
     currentCost: 0
   - upgradeName: 
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 0}
+    profitPerSecond: 0.1
+    button: {fileID: 0}
     costText: {fileID: 0}
     levelText: {fileID: 0}
     currentLevel: 0
     currentCost: 0
   - upgradeName: 
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 0}
+    profitPerSecond: 0.1
+    button: {fileID: 0}
     costText: {fileID: 0}
     levelText: {fileID: 0}
     currentLevel: 0
     currentCost: 0
   - upgradeName: 
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 0}
+    profitPerSecond: 0.1
+    button: {fileID: 0}
     costText: {fileID: 0}
     levelText: {fileID: 0}
     currentLevel: 0
     currentCost: 0
   - upgradeName: 
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 0}
+    profitPerSecond: 0.1
+    button: {fileID: 0}
     costText: {fileID: 0}
     levelText: {fileID: 0}
     currentLevel: 0
     currentCost: 0
   - upgradeName: 
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 0}
+    profitPerSecond: 0.1
+    button: {fileID: 0}
     costText: {fileID: 0}
     levelText: {fileID: 0}
     currentLevel: 0
     currentCost: 0
   - upgradeName: 
     baseCost: 10
-    incomePerSecond: 1
-    costMultiplier: 1.15
-    purchaseButton: {fileID: 0}
+    profitPerSecond: 0.1
+    button: {fileID: 0}
     costText: {fileID: 0}
     levelText: {fileID: 0}
     currentLevel: 0
     currentCost: 0
+  updateInterval: 1
 --- !u!1 &1527523078
 GameObject:
   m_ObjectHideFlags: 0
