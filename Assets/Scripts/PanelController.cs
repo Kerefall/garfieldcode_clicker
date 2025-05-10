@@ -7,40 +7,72 @@ public class PanelController : MonoBehaviour
     [System.Serializable]
     public class PanelData
     {
-        public Button button;   
-        public GameObject panel;  
+        public Button button;
+        public GameObject panel;
     }
 
     public List<PanelData> panels;
-
-    public GameObject MainPanel;
+    [SerializeField] private GameObject mainMenuPanel; // Изменил тип на GameObject
 
     private void Start()
     {
-        MainPanel = GameObject.Find("MainMenuPanel");
+        // Если панель не назначена в инспекторе, пытаемся найти
+        if (mainMenuPanel == null)
+        {
+            mainMenuPanel = GameObject.Find("MainMenuPanel");
+            if (mainMenuPanel == null)
+            {
+                Debug.LogError("MainMenuPanel not found in scene!");
+            }
+        }
+
         foreach (var panelData in panels)
         {
-            panelData.button.onClick.AddListener(() => TogglePanel(panelData.panel));
+            if (panelData.button == null || panelData.panel == null)
+            {
+                Debug.LogError("PanelData elements are not properly assigned!");
+                continue;
+            }
+
+            var currentPanel = panelData.panel;
+            panelData.button.onClick.AddListener(() => TogglePanel(currentPanel));
         }
     }
 
     private void TogglePanel(GameObject panel)
     {
+        if (panel == null)
+        {
+            Debug.LogError("Trying to toggle a null panel!");
+            return;
+        }
+
         if (!panel.activeSelf)
         {
-            foreach (var panelData in panels)
-            {
-                panelData.panel.SetActive(false);
-            }
+            SetAllPanelsInactive();
             panel.SetActive(true);
+
+            if (mainMenuPanel != null)
+            {
+                mainMenuPanel.SetActive(false);
+            }
         }
         else
         {
-            foreach (var panelData in panels)
+            SetAllPanelsInactive();
+            if (mainMenuPanel != null)
             {
-                panelData.panel.SetActive(false);
+                mainMenuPanel.SetActive(true);
             }
-            MainPanel.SetActive(true);
+        }
+    }
+
+    private void SetAllPanelsInactive()
+    {
+        foreach (var panelData in panels)
+        {
+            if (panelData.panel != null)
+                panelData.panel.SetActive(false);
         }
     }
 }
