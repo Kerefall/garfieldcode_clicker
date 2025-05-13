@@ -154,7 +154,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
             upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()}";
 
         if (upgrade.levelText != null)
-            upgrade.levelText.text = $"Куплено {upgrade.currentLevel} штук";
+            upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
 
         if (upgrade.button != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
