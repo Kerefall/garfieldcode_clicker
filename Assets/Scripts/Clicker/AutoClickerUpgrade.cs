@@ -26,9 +26,15 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
     private void Start()
     {
+        if (Clicker.Instance == null)
+        {
+            Debug.LogError("Clicker instance not found in scene!");
+            enabled = false;
+            return;
+        }
+
         InitializeUpgrades();
         UpdateUI();
-        // Убрали вызов Update() здесь
     }
 
     private void Update()
@@ -54,7 +60,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
             if (upgrades[i] == null) continue;
 
             upgrades[i].currentLevel = PlayerPrefs.GetInt($"AutoClicker_{i}_Level", 0);
-            upgrades[i].currentCost = upgrades[i].baseCost * (upgrades[i].currentLevel + 1);
+            upgrades[i].currentCost = CalculateUpgradeCost(upgrades[i]);
 
             if (upgrades[i].button != null)
             {
@@ -64,50 +70,38 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
             }
         }
 
-        // Инициализируем общий пассивный доход при старте
         UpdateTotalPassiveProfit();
+    }
+
+    private int CalculateUpgradeCost(AutoClickerUpgrade upgrade)
+    {
+        return upgrade.baseCost * (upgrade.currentLevel + 1);
     }
 
     private void BuyAutoClicker(int upgradeIndex)
     {
-        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length || upgrades[upgradeIndex] == null)
-        {
-            Debug.LogError($"Invalid upgrade index: {upgradeIndex}");
-            return;
-        }
+        if (Clicker.Instance == null) return;
+        if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length || upgrades[upgradeIndex] == null) return;
 
-        AutoClickerUpgrade upgrade = upgrades[upgradeIndex];
-
-        // Проверяем, что Clicker.Instance существует
-        if (Clicker.Instance == null)
-        {
-            Debug.LogError("Clicker.Instance is null!");
-            return;
-        }
-
+        var upgrade = upgrades[upgradeIndex];
         if (Clicker.Instance.Money >= upgrade.currentCost)
         {
             Clicker.Instance.Money -= upgrade.currentCost;
             upgrade.currentLevel++;
-            upgrade.currentCost = upgrade.baseCost * (upgrade.currentLevel + 1);
+            upgrade.currentCost = CalculateUpgradeCost(upgrade);
 
             PlayerPrefs.SetInt($"AutoClicker_{upgradeIndex}_Level", upgrade.currentLevel);
-            PlayerPrefs.Save(); // Явно сохраняем изменения
+            PlayerPrefs.Save();
 
             UpdateTotalPassiveProfit();
             UpdateSingleUpgradeUI(upgradeIndex);
-
-            // Обновляем UI Clicker'а, если такой метод существует
-            if (Clicker.Instance != null)
-            {
-                Clicker.Instance.Update(); // Переименовали для ясности
-            }
+            Clicker.Instance.UpdateUI();
         }
     }
 
     private void ApplyPassiveIncome()
     {
-        if (upgrades == null || upgrades.Length == 0 || Clicker.Instance == null) return;
+        if (Clicker.Instance == null || upgrades == null) return;
 
         float totalProfit = 0f;
         foreach (var upgrade in upgrades)
@@ -121,14 +115,13 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         if (totalProfit > 0)
         {
             Clicker.Instance.Money += totalProfit * updateInterval;
-            Clicker.Instance.Update(); // Обновляем UI после изменения денег
-            Debug.Log($"Applied passive income: {totalProfit * updateInterval}"); // Для отладки
+            Debug.Log($"Applied passive income: {totalProfit * updateInterval}");
         }
     }
 
     private void UpdateTotalPassiveProfit()
     {
-        if (upgrades == null || upgrades.Length == 0 || Clicker.Instance == null) return;
+        if (Clicker.Instance == null || upgrades == null) return;
 
         float totalProfit = 0f;
         foreach (var upgrade in upgrades)
@@ -154,15 +147,16 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
     private void UpdateSingleUpgradeUI(int index)
     {
         if (index < 0 || index >= upgrades.Length || upgrades[index] == null) return;
+        if (Clicker.Instance == null) return;
 
-        AutoClickerUpgrade upgrade = upgrades[index];
+        var upgrade = upgrades[index];
         if (upgrade.costText != null)
-            upgrade.costText.text = upgrade.currentCost.ToString();
+            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()}";
 
         if (upgrade.levelText != null)
-            upgrade.levelText.text = $"Ур. {upgrade.currentLevel}";
+            upgrade.levelText.text = $"Куплено {upgrade.currentLevel} штук";
 
-        if (upgrade.button != null && Clicker.Instance != null)
+        if (upgrade.button != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
     }
 

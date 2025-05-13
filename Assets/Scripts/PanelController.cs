@@ -9,70 +9,179 @@ public class PanelController : MonoBehaviour
     {
         public Button button;
         public GameObject panel;
+        public string panelName; // Добавлено для удобства отладки
     }
 
-    public List<PanelData> panels;
-    [SerializeField] private GameObject mainMenuPanel; // Изменил тип на GameObject
+    [Header("Панели управления")]
+    [Tooltip("Список панелей и их кнопок")]
+    [SerializeField] private List<PanelData> panels = new List<PanelData>();
+
+    [Header("Главное меню")]
+    [Tooltip("Основная панель меню")]
+    [SerializeField] private GameObject mainMenuPanel;
+
+    private void Awake()
+    {
+        ValidateReferences();
+    }
 
     private void Start()
     {
-        // Если панель не назначена в инспекторе, пытаемся найти
-        if (mainMenuPanel == null)
+        InitializePanels();
+    }
+
+    /// <summary>
+    /// Проверка всех необходимых ссылок
+    /// </summary>
+    private void ValidateReferences()
+    {
+        if (panels == null || panels.Count == 0)
         {
-            mainMenuPanel = GameObject.Find("MainMenuPanel");
-            if (mainMenuPanel == null)
-            {
-                Debug.LogError("MainMenuPanel not found in scene!");
-            }
+            Debug.LogError("Panels list is not assigned or empty!", this);
+            return;
         }
 
-        foreach (var panelData in panels)
+        bool hasErrors = false;
+
+        // Проверка панелей и кнопок
+        for (int i = 0; i < panels.Count; i++)
         {
-            if (panelData.button == null || panelData.panel == null)
+            if (panels[i] == null)
             {
-                Debug.LogError("PanelData elements are not properly assigned!");
+                Debug.LogError($"PanelData at index {i} is null!", this);
+                hasErrors = true;
                 continue;
             }
 
-            var currentPanel = panelData.panel;
-            panelData.button.onClick.AddListener(() => TogglePanel(currentPanel));
+            if (panels[i].button == null)
+            {
+                Debug.LogError($"Button is not assigned for panel at index {i}!", this);
+                hasErrors = true;
+            }
+
+            if (panels[i].panel == null)
+            {
+                Debug.LogError($"Panel is not assigned for panel at index {i}!", this);
+                hasErrors = true;
+            }
+        }
+
+        // Проверка главной панели
+        if (mainMenuPanel == null)
+        {
+            Debug.LogWarning("MainMenuPanel is not assigned, trying to find...", this);
+            mainMenuPanel = GameObject.Find("MainMenuPanel");
+
+            if (mainMenuPanel == null)
+            {
+                Debug.LogError("MainMenuPanel not found in scene!", this);
+                hasErrors = true;
+            }
+        }
+
+        if (hasErrors)
+        {
+            Debug.LogError("PanelController has initialization errors!", this);
         }
     }
 
+    /// <summary>
+    /// Инициализация панелей и подписка на события
+    /// </summary>
+    private void InitializePanels()
+    {
+        foreach (var panelData in panels)
+        {
+            if (panelData == null || panelData.button == null || panelData.panel == null)
+                continue;
+
+            // Создаем локальную копию для замыкания
+            GameObject panel = panelData.panel;
+            panelData.button.onClick.AddListener(() => TogglePanel(panel));
+
+            // Инициализируем состояние панели
+            panel.SetActive(false);
+        }
+
+        // Активируем главное меню по умолчанию
+        if (mainMenuPanel != null)
+        {
+            mainMenuPanel.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Переключение видимости панели
+    /// </summary>
+    /// <param name="panel">Панель для переключения</param>
     private void TogglePanel(GameObject panel)
     {
         if (panel == null)
         {
-            Debug.LogError("Trying to toggle a null panel!");
+            Debug.LogError("Trying to toggle a null panel!", this);
             return;
         }
 
-        if (!panel.activeSelf)
-        {
-            SetAllPanelsInactive();
-            panel.SetActive(true);
+        bool activatePanel = !panel.activeSelf;
 
-            if (mainMenuPanel != null)
-            {
-                mainMenuPanel.SetActive(false);
-            }
-        }
-        else
+        // Деактивируем все панели
+        SetAllPanelsInactive();
+
+        // Активируем/деактивируем выбранную панель
+        panel.SetActive(activatePanel);
+
+        // Управление главной панелью меню
+        if (mainMenuPanel != null)
         {
-            SetAllPanelsInactive();
-            if (mainMenuPanel != null)
-            {
-                mainMenuPanel.SetActive(true);
-            }
+            mainMenuPanel.SetActive(!activatePanel);
         }
     }
 
+    /// <summary>
+    /// Деактивирует все зарегистрированные панели
+    /// </summary>
     private void SetAllPanelsInactive()
     {
         foreach (var panelData in panels)
         {
-            if (panelData.panel != null)
+            if (panelData != null && panelData.panel != null)
                 panelData.panel.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// Метод для редактора - проверяет назначенные элементы
+    /// </summary>
+    [ContextMenu("Validate Panel Assignments")]
+    private void ValidatePanelAssignments()
+    {
+        if (panels == null || panels.Count == 0)
+        {
+            Debug.LogError("No panels assigned!", this);
+            return;
+        }
+
+        for (int i = 0; i < panels.Count; i++)
+        {
+            string status = $"Panel {i}: ";
+            status += panels[i] == null ? "NULL ENTRY" :
+                     (panels[i].panel == null ? "MISSING PANEL" : $"'{panels[i].panel.name}'");
+            status += " | ";
+            status += panels[i] == null ? "NO BUTTON" :
+                     (panels[i].button == null ? "MISSING BUTTON" : $"'{panels[i].button.name}'");
+
+            if (panels[i] == null || panels[i].panel == null || panels[i].button == null)
+            {
+                Debug.LogError(status, this);
+            }
+            else
+            {
+                Debug.Log(status, this);
+            }
+        }
+
+        Debug.Log(mainMenuPanel == null ?
+            "MainMenuPanel is NOT assigned!" :
+            $"MainMenuPanel assigned: '{mainMenuPanel.name}'", this);
     }
 }

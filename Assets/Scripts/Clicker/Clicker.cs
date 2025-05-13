@@ -2,84 +2,90 @@ using TMPro;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 using System.Globalization;
 
 public class Clicker : MonoBehaviour
 {
-    public static Clicker Instance;
+    public static Clicker Instance { get; private set; }
 
-    public float Money // Total user's money
+    public float Money
     {
         get => PlayerPrefs.GetFloat("Money", 0);
-        set => PlayerPrefs.SetFloat("Money", value);
+        set
+        {
+            PlayerPrefs.SetFloat("Money", value);
+            UpdateUI();
+        }
     }
 
-    public int ClickGain 
+    public int ClickGain
     {
         get => PlayerPrefs.GetInt("ClickGain", 1);
-        set => PlayerPrefs.SetInt("ClickGain", value);
+        set
+        {
+            PlayerPrefs.SetInt("ClickGain", value);
+            UpdateUI();
+        }
     }
 
-    public float PassiveProfit // Passive money
+    public float PassiveProfit
     {
-        get => PlayerPrefs.GetFloat("PassiveProfit", 1);
+        get => PlayerPrefs.GetFloat("PassiveProfit", 0);
         set => PlayerPrefs.SetFloat("PassiveProfit", value);
     }
 
+    [SerializeField] private TextMeshProUGUI moneyText;
 
-    [SerializeField]
-    private TextMeshProUGUI moneyText;
-
-    public void Awake() // For using methods of this class in other files
+    private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
     }
 
-    public void Start()
+    private void Start()
     {
-        Update();
         CalculateOfflineMoney();
-        
+        UpdateUI();
     }
 
     public void Click()
     {
         Money += ClickGain;
-        EffectController.Instance.SetClickEffect(ClickGain);
-        Update();
+        EffectController.Instance?.SetClickEffect(ClickGain);
     }
 
-    public void Update()
+    public void UpdateUI()
     {
-        moneyText.text = FormatNumber(Money);
+        if (moneyText != null)
+            moneyText.text = FormatNumber(Money);
     }
 
     private void OnApplicationQuit()
-        => PlayerPrefs.SetString("LastPlayedTime", DateTime.UtcNow.ToString());
+    {
+        PlayerPrefs.SetString("LastPlayedTime", DateTime.UtcNow.ToString());
+    }
 
     private void CalculateOfflineMoney()
     {
         var lastPlayedTimeString = PlayerPrefs.GetString("LastPlayedTime", null);
+        if (string.IsNullOrEmpty(lastPlayedTimeString)) return;
 
-        if (lastPlayedTimeString == null)
-            return;
-
-        var lastPlayedTime = DateTime.Parse(lastPlayedTimeString);
-        var maxTime = 6 * 60 * 60; // Maximum time kogda player offline
-        var offlineTime = ((float)(DateTime.UtcNow - lastPlayedTime).TotalSeconds);
-
-        offlineTime = (offlineTime > maxTime) ? maxTime : offlineTime;
-
-        var offlineMoney = offlineTime * PassiveProfit;
-        Money += offlineMoney;
-        Debug.Log($"Offine time : {offlineTime}, offline money: {offlineMoney}");
+        if (DateTime.TryParse(lastPlayedTimeString, out var lastPlayedTime))
+        {
+            var maxTime = 6 * 60 * 60;
+            var offlineTime = Mathf.Min((float)(DateTime.UtcNow - lastPlayedTime).TotalSeconds, maxTime);
+            var offlineMoney = offlineTime * PassiveProfit;
+            Money += offlineMoney;
+            Debug.Log($"Offline time: {offlineTime}, offline money: {offlineMoney}");
+        }
     }
 
     private string FormatNumber(float number)
     {
-        CultureInfo culture = new CultureInfo("en-US");
-        return number.ToString("N2", culture);
+        return number.ToString("N2", CultureInfo.InvariantCulture);
     }
-
 }
