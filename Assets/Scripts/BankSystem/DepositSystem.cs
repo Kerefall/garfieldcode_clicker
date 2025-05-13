@@ -23,11 +23,11 @@ public class BankSystem : MonoBehaviour
     [Tooltip("Время одного игрового круга в минутах")]
     [SerializeField] private float oneCircleTime = 5f;
 
-    private float playerBalance = 1000f;
+    //private float playerBalance = Clicker.Instance.Money;
     private float depositAmount = 0f;
     private float depositInterest = 0f;
     private int depositDurationDays = 0;
-    private DateTime depositEndTime;
+    private float depositDays;
 
     private Coroutine interestCoroutine;
     private Coroutine timerCoroutine;
@@ -46,14 +46,14 @@ public class BankSystem : MonoBehaviour
      
     private void UpdateUI()
     {
-        currentBalanceText.text = $"Баланс: {playerBalance:F2}";
-        depositBalanceText.text = $"Счёт вклада: {depositAmount:F2}";
-        interestRateText.text = $"Процентная ставка: {(annualRate - 0.05f) * 100}% в круг";
+        currentBalanceText.text = $"Баланс: {Clicker.Instance.Money:F2}";
+        depositBalanceText.text = $"{depositAmount:F2}";
+        interestRateText.text = $"{(annualRate - 0.05f) * 100}%";
 
         if (depositAmount > 0)
         {
-            TimeSpan timeLeft = depositEndTime - DateTime.Now;
-            timeLeftText.text = $"Времени осталось: {timeLeft.Days}d {timeLeft.Hours}ч {timeLeft.Minutes}м";
+            var timeLeft = depositDurationDays - depositDays;
+            timeLeftText.text = $"Времени осталось: {timeLeft}d ";
         }
         else
         {
@@ -63,19 +63,24 @@ public class BankSystem : MonoBehaviour
 
     public void CreateDeposit()
     {
+
         if (float.TryParse(depositAmountInput.text, out float amount))
         {
-            var durationDays = depositDurationDropdown.value;
-            if (amount <= 0 || durationDays <= 0) return;
 
-            if (amount <= playerBalance && durationDays <= maxDepositDuration)
+            int durationIndex = depositDurationDropdown.value;
+            int[] durationDaysOptions = { 30, 90, 180, 365, 730, 1095, 1825 };
+
+            if (durationIndex >= durationDaysOptions.Length) return;
+
+            int durationDays = durationDaysOptions[durationIndex];
+
+            if (amount > 0 && durationDays <= maxDepositDuration && amount <= Clicker.Instance.Money)
             {
-                playerBalance -= amount;
+                Debug.Log("Dep was created");
+                Clicker.Instance.Money -= amount;
                 depositAmount = amount;
                 depositDurationDays = durationDays;
                 depositInterest = 0f;
-
-                depositEndTime = DateTime.Now.AddDays(durationDays);
 
                 if (interestCoroutine != null) StopCoroutine(interestCoroutine);
                 if (timerCoroutine != null) StopCoroutine(timerCoroutine);
@@ -92,7 +97,7 @@ public class BankSystem : MonoBehaviour
     {
         if (depositAmount > 0)
         {
-            playerBalance += depositAmount;
+            Clicker.Instance.Money += depositAmount;
 
             depositAmount = 0;
             depositInterest = 0;
@@ -111,11 +116,12 @@ public class BankSystem : MonoBehaviour
         {
             yield return new WaitForSeconds(oneCircleTime * 60f);
 
-            if (DateTime.Now < depositEndTime)
+            if (depositDays < depositDurationDays)
             {
                 var depositRate = (annualRate - 0.05f) * 100;
                 var circleInterest = (depositAmount * depositRate * depositDurationDays) / (100 * 365);
                 depositInterest += circleInterest;
+                depositDays += 1;
 
                 UpdateUI();
                 Debug.Log($"Проценты круга: +{circleInterest:F2}");
@@ -125,7 +131,7 @@ public class BankSystem : MonoBehaviour
 
     private IEnumerator DepositTimer()
     {
-        while (DateTime.Now < depositEndTime)
+        while (depositDays < depositDurationDays)
         {
             UpdateUI();
             yield return new WaitForSeconds(1f); 
@@ -136,7 +142,7 @@ public class BankSystem : MonoBehaviour
 
     private void CompleteDeposit()
     {
-        playerBalance += depositAmount + depositInterest;
+        Clicker.Instance.Money += depositAmount + depositInterest;
 
         Debug.Log($"Вклад завершен! Зачислено: {depositAmount:F2} + проценты: {depositInterest:F2}");
 
