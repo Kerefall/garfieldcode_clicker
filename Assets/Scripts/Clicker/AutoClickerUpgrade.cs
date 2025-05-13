@@ -115,7 +115,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         if (totalProfit > 0)
         {
             Clicker.Instance.Money += totalProfit * updateInterval;
-            Debug.Log($"Applied passive income: {totalProfit * updateInterval}");
+            //Debug.Log($"Applied passive income: {totalProfit * updateInterval}");
         }
     }
 
