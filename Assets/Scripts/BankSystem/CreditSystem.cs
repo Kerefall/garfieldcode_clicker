@@ -1,15 +1,15 @@
-using UnityEngine;
+п»їusing UnityEngine;
+using TMPro;
 using UnityEngine.UI;
 using System;
 using System.Collections;
-using TMPro;
 
 public class CreditSystem : MonoBehaviour
 {
-    [Header("UI Elements")]
+    [Header("Р­Р»РµРјРµРЅС‚С‹ РёРЅС‚РµСЂС„РµР№СЃР°")]
     public GameObject creditPanel;
-    public InputField creditAmountInput;
-    public InputField creditDurationInput;
+    public TMP_InputField creditAmountInput;
+    public TMP_Dropdown creditDurationDropdown;
     public TextMeshProUGUI currentBalanceText;
     public TextMeshProUGUI creditDebtText;
     public TextMeshProUGUI interestRateText;
@@ -17,150 +17,285 @@ public class CreditSystem : MonoBehaviour
     public Button takeCreditButton;
     public Button repayCreditButton;
 
-    [Header("Настройки кредита")]
-    [SerializeField] private float annualInterestRate = 0.15f; // Годовая процентная ставка
-    [SerializeField] private float maxCreditDuration = 365f; // Максимальный срок кредита в днях
-    [SerializeField] private float minCreditAmount = 100f; // Минимальная сумма кредита
-    [SerializeField] private float penaltyRate = 0.2f; // Штраф за просрочку
-    [Tooltip("Время одного игрового круга в минутах")]
-    [SerializeField] private float oneCircleTime = 5f;
+    [Header("РќР°СЃС‚СЂРѕР№РєРё РєСЂРµРґРёС‚Р°")]
+    [SerializeField] private float annualInterestRate = 0.15f;
+    [SerializeField] private float minCreditAmount = 100f;
+    [SerializeField] private float penaltyRate = 0.2f;
 
-    private float playerBalance = 1000f;
+    private int[] availableLoanTerms = { 1, 3, 6 };
     private float creditAmount = 0f;
     private float creditInterest = 0f;
-    private float creditDurationDays = 0f;
     private DateTime creditEndTime;
     private bool isOverdue = false;
-
     private Coroutine interestCoroutine;
     private Coroutine timerCoroutine;
+    private float gameTimeMultiplier = 43200f; // 1 РґРµРЅСЊ = 2 СЃРµРєСѓРЅРґС‹ (86400/2)
+    private DateTime gameStartTime;
 
     void Start()
     {
-        UpdateUI();
-        takeCreditButton.onClick.AddListener(TakeCredit);
-        repayCreditButton.onClick.AddListener(RepayCredit);
-    }
+        gameStartTime = DateTime.Now;
 
-    private void UpdateUI()
-    {
-        currentBalanceText.text = $"Баланс: {playerBalance:F2}";
-        creditDebtText.text = $"Задолженность: {creditAmount + creditInterest:F2}";
-        interestRateText.text = $"Процентная ставка: {annualInterestRate * 100}% годовых";
+        // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ UI
+        ConfigureDropdown();
+        SetupEventListeners();
 
+        // Р—Р°РіСЂСѓР·РєР° РґР°РЅРЅС‹С… Рё РѕР±РЅРѕРІР»РµРЅРёРµ UI
+        LoadCreditData();
+        UpdateBalanceImmediately();
+        RefreshAllUI();
+
+        // Р—Р°РїСѓСЃРє РїСЂРѕС†РµСЃСЃРѕРІ РґР»СЏ Р°РєС‚РёРІРЅРѕРіРѕ РєСЂРµРґРёС‚Р°
         if (creditAmount > 0)
         {
-            TimeSpan timeLeft = creditEndTime - DateTime.Now;
-            if (timeLeft.TotalSeconds > 0)
+            interestCoroutine = StartCoroutine(InterestCalculation());
+            timerCoroutine = StartCoroutine(CreditTimer());
+        }
+    }
+
+    void Update()
+    {
+        // РџРѕСЃС‚РѕСЏРЅРЅРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ С‚Р°Р№РјРµСЂР°
+        if (creditAmount > 0)
+        {
+            UpdateTimerUI();
+        }
+    }
+
+    private void UpdateBalanceImmediately()
+    {
+        if (Clicker.Instance != null && currentBalanceText != null)
+        {
+            currentBalanceText.text = $"Р‘Р°Р»Р°РЅСЃ: {Clicker.Instance.Money:F2}в‚Ѕ";
+            currentBalanceText.ForceMeshUpdate();
+            Canvas.ForceUpdateCanvases();
+        }
+    }
+
+    private void ConfigureDropdown()
+    {
+        creditDurationDropdown.ClearOptions();
+        foreach (var term in availableLoanTerms)
+        {
+            creditDurationDropdown.options.Add(new TMP_Dropdown.OptionData($"{term} {(term == 1 ? "РјРµСЃСЏС†" : term < 5 ? "РјРµСЃСЏС†Р°" : "РјРµСЃСЏС†РµРІ")}"));
+        }
+
+        // РќР°СЃС‚СЂРѕР№РєР° РІРёР·СѓР°Р»Р° Dropdown
+        if (creditDurationDropdown.template != null)
+        {
+            var template = creditDurationDropdown.template;
+            var scrollRect = template.GetComponent<ScrollRect>();
+            if (scrollRect != null) scrollRect.scrollSensitivity = 20f;
+
+            var item = template.Find("Viewport/Content/Item")?.GetComponent<LayoutElement>();
+            if (item != null) item.minHeight = 40f;
+
+            var itemText = template.Find("Viewport/Content/Item/Item Background/Item Label")?.GetComponent<TextMeshProUGUI>();
+            if (itemText != null)
             {
-                timeLeftText.text = $"Времени осталось: {timeLeft.Days}d {timeLeft.Hours}ч {timeLeft.Minutes}м";
+                itemText.fontSize = 24;
+                itemText.alignment = TextAlignmentOptions.MidlineLeft;
+                itemText.margin = new Vector4(10, 0, 0, 0);
+            }
+        }
+        creditDurationDropdown.RefreshShownValue();
+    }
+
+    private DateTime GetCurrentGameTime()
+    {
+        TimeSpan realTimePassed = DateTime.Now - gameStartTime;
+        TimeSpan gameTimePassed = new TimeSpan((long)(realTimePassed.Ticks * gameTimeMultiplier));
+        return gameStartTime + gameTimePassed;
+    }
+
+    private void SetupEventListeners()
+    {
+        takeCreditButton.onClick.AddListener(() =>
+        {
+            TakeCredit();
+            RefreshAllUI();
+        });
+
+        repayCreditButton.onClick.AddListener(() =>
+        {
+            RepayCredit();
+            RefreshAllUI();
+        });
+    }
+
+    private void LoadCreditData()
+    {
+        creditAmount = PlayerPrefs.GetFloat("Credit_Amount", 0f);
+        creditInterest = PlayerPrefs.GetFloat("Credit_Interest", 0f);
+
+        if (PlayerPrefs.HasKey("Credit_EndTime"))
+        {
+            long endTimeBinary = Convert.ToInt64(PlayerPrefs.GetString("Credit_EndTime"));
+            creditEndTime = DateTime.FromBinary(endTimeBinary);
+        }
+
+        isOverdue = PlayerPrefs.GetInt("Credit_IsOverdue", 0) == 1;
+    }
+
+    private void SaveCreditData()
+    {
+        PlayerPrefs.SetFloat("Credit_Amount", creditAmount);
+        PlayerPrefs.SetFloat("Credit_Interest", creditInterest);
+        PlayerPrefs.SetString("Credit_EndTime", creditEndTime.ToBinary().ToString());
+        PlayerPrefs.SetInt("Credit_IsOverdue", isOverdue ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    private void ClearCreditData()
+    {
+        PlayerPrefs.DeleteKey("Credit_Amount");
+        PlayerPrefs.DeleteKey("Credit_Interest");
+        PlayerPrefs.DeleteKey("Credit_EndTime");
+        PlayerPrefs.DeleteKey("Credit_IsOverdue");
+        PlayerPrefs.Save();
+    }
+
+    private void RefreshAllUI()
+    {
+        UpdateBalanceUI();
+        UpdateDebtUI();
+        UpdateTimerUI();
+        ForceUIRebuild();
+    }
+
+    private void UpdateBalanceUI()
+    {
+        if (Clicker.Instance != null && currentBalanceText != null)
+        {
+            currentBalanceText.text = $"Р‘Р°Р»Р°РЅСЃ: {Clicker.Instance.Money:F2}в‚Ѕ";
+            currentBalanceText.ForceMeshUpdate();
+        }
+    }
+
+    private void UpdateDebtUI()
+    {
+        if (creditDebtText != null && interestRateText != null)
+        {
+            creditDebtText.text = $"Р”РѕР»Рі: {CalculateTotalDebt():F2}в‚Ѕ";
+            interestRateText.text = $"РџСЂРѕС†РµРЅС‚РЅР°СЏ СЃС‚Р°РІРєР°: {annualInterestRate * 100}% РіРѕРґРѕРІС‹С…";
+            creditDebtText.ForceMeshUpdate();
+        }
+    }
+
+    private void UpdateTimerUI()
+    {
+        if (timeLeftText != null && creditAmount > 0)
+        {
+            DateTime currentGameTime = GetCurrentGameTime();
+            TimeSpan remaining = creditEndTime - currentGameTime;
+            int remainingDays = (int)remaining.TotalDays;
+
+            if (remainingDays > 0)
+            {
+                timeLeftText.text = $"РћСЃС‚Р°Р»РѕСЃСЊ РґРЅРµР№: {remainingDays}";
                 timeLeftText.color = Color.white;
             }
             else
             {
-                timeLeftText.text = $"Просрочено! Штраф: {penaltyRate * 100}%";
+                timeLeftText.text = $"РџР РћРЎР РћР§Р•РќРћ! РЁС‚СЂР°С„ +{penaltyRate * 100}%";
                 timeLeftText.color = Color.red;
             }
+            timeLeftText.ForceMeshUpdate();
         }
-        else
+    }
+
+    private void ForceUIRebuild()
+    {
+        Canvas.ForceUpdateCanvases();
+        if (timeLeftText != null)
         {
-            timeLeftText.text = "Нет активных кредитов";
-            timeLeftText.color = Color.white;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(timeLeftText.rectTransform);
         }
+        if (currentBalanceText != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(currentBalanceText.rectTransform);
+        }
+    }
+
+    private float CalculateTotalDebt()
+    {
+        float total = creditAmount + creditInterest;
+        return isOverdue ? total * (1 + penaltyRate) : total;
     }
 
     public void TakeCredit()
     {
-        if (float.TryParse(creditAmountInput.text, out float amount) &&
-            float.TryParse(creditDurationInput.text, out float durationDays))
+        if (!float.TryParse(creditAmountInput.text, out float amount) || amount < minCreditAmount)
         {
-            if (amount < minCreditAmount || durationDays <= 0)
-            {
-                Debug.Log($"Минимальная сумма кредита: {minCreditAmount}");
-                return;
-            }
-
-            if (creditAmount > 0)
-            {
-                Debug.Log("У вас уже есть активный кредит!");
-                return;
-            }
-
-            if (durationDays <= maxCreditDuration)
-            {
-                creditAmount = amount;
-                creditDurationDays = durationDays;
-                creditInterest = 0f;
-                isOverdue = false;
-
-                playerBalance += amount; // Получаем деньги на счет
-                creditEndTime = DateTime.Now.AddDays(durationDays);
-
-                if (interestCoroutine != null) StopCoroutine(interestCoroutine);
-                if (timerCoroutine != null) StopCoroutine(timerCoroutine);
-
-                interestCoroutine = StartCoroutine(CalculateInterest());
-                timerCoroutine = StartCoroutine(CreditTimer());
-
-                UpdateUI();
-                Debug.Log($"Кредит получен! Сумма: {amount:F2}, срок: {durationDays} дней");
-            }
-            else
-            {
-                Debug.Log($"Максимальный срок кредита: {maxCreditDuration} дней");
-            }
+            Debug.LogError($"РњРёРЅРёРјР°Р»СЊРЅР°СЏ СЃСѓРјРјР° РєСЂРµРґРёС‚Р°: {minCreditAmount}в‚Ѕ");
+            return;
         }
+
+        if (creditAmount > 0)
+        {
+            Debug.LogError("РЈ РІР°СЃ СѓР¶Рµ РµСЃС‚СЊ Р°РєС‚РёРІРЅС‹Р№ РєСЂРµРґРёС‚!");
+            return;
+        }
+
+        int term = availableLoanTerms[creditDurationDropdown.value];
+        creditAmount = amount;
+        creditEndTime = GetCurrentGameTime().AddDays(term * 30); // 30 РґРЅРµР№ = 60 СЃРµРєСѓРЅРґ
+        isOverdue = false;
+
+        Clicker.Instance.Money += amount;
+        Clicker.Instance.UpdateUI();
+
+        if (interestCoroutine != null) StopCoroutine(interestCoroutine);
+        if (timerCoroutine != null) StopCoroutine(timerCoroutine);
+
+        interestCoroutine = StartCoroutine(InterestCalculation());
+        timerCoroutine = StartCoroutine(CreditTimer());
+
+        SaveCreditData();
+        RefreshAllUI();
+
+        Debug.Log($"Р’Р·СЏС‚ РєСЂРµРґРёС‚ РЅР° СЃСѓРјРјСѓ: {amount:F2}в‚Ѕ, СЃСЂРѕРєРѕРј РЅР° {term} {(term == 1 ? "РјРµСЃСЏС†" : term < 5 ? "РјРµСЃСЏС†Р°" : "РјРµСЃСЏС†РµРІ")}");
     }
 
     public void RepayCredit()
     {
-        if (creditAmount > 0)
+        if (creditAmount <= 0) return;
+
+        float totalDebt = CalculateTotalDebt();
+
+        if (Clicker.Instance.Money >= totalDebt)
         {
-            float totalDebt = creditAmount + creditInterest;
+            Clicker.Instance.Money -= totalDebt;
+            Clicker.Instance.UpdateUI();
 
-            // Проверяем, есть ли просрочка
-            if (DateTime.Now > creditEndTime)
-            {
-                totalDebt *= (1 + penaltyRate); // Добавляем штраф
-                Debug.Log("Просрочка! Начислен штраф.");
-            }
+            creditAmount = 0;
+            creditInterest = 0;
 
-            if (playerBalance >= totalDebt)
-            {
-                playerBalance -= totalDebt;
+            if (interestCoroutine != null) StopCoroutine(interestCoroutine);
+            if (timerCoroutine != null) StopCoroutine(timerCoroutine);
 
-                Debug.Log($"Кредит погашен! Сумма: {creditAmount:F2} + проценты: {creditInterest:F2}" +
-                          (DateTime.Now > creditEndTime ? $" + штраф: {totalDebt - (creditAmount + creditInterest):F2}" : ""));
+            ClearCreditData();
+            RefreshAllUI();
 
-                creditAmount = 0;
-                creditInterest = 0;
-                isOverdue = false;
-
-                if (interestCoroutine != null) StopCoroutine(interestCoroutine);
-                if (timerCoroutine != null) StopCoroutine(timerCoroutine);
-
-                UpdateUI();
-            }
-            else
-            {
-                Debug.Log($"Недостаточно средств для погашения! Нужно: {totalDebt:F2}, у вас: {playerBalance:F2}");
-            }
+            Debug.Log("РљСЂРµРґРёС‚ РїРѕР»РЅРѕСЃС‚СЊСЋ РїРѕРіР°С€РµРЅ!");
+        }
+        else
+        {
+            Debug.LogError($"РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЃСЂРµРґСЃС‚РІ! РќСѓР¶РЅРѕ: {totalDebt:F2}в‚Ѕ, Сѓ РІР°СЃ: {Clicker.Instance.Money:F2}в‚Ѕ");
         }
     }
 
-    private IEnumerator CalculateInterest()
+    private IEnumerator InterestCalculation()
     {
         while (creditAmount > 0)
         {
-            yield return new WaitForSeconds(oneCircleTime * 60f);
+            yield return new WaitForSeconds(14f); // РќР°С‡РёСЃР»РµРЅРёРµ РєР°Р¶РґС‹Рµ 14 СЃРµРєСѓРЅРґ (РёРіСЂРѕРІР°СЏ РЅРµРґРµР»СЏ)
 
-            // Рассчитываем проценты за круг
-            float dailyRate = annualInterestRate / 365f;
-            float circleInterest = creditAmount * dailyRate * (oneCircleTime / 1440f); // 1440 минут в дне
-            creditInterest += circleInterest;
+            float weeklyRate = annualInterestRate / 52f;
+            creditInterest += creditAmount * weeklyRate;
 
-            UpdateUI();
-            Debug.Log($"Начислены проценты: +{circleInterest:F2}");
+            SaveCreditData();
+            UpdateDebtUI();
         }
     }
 
@@ -168,16 +303,27 @@ public class CreditSystem : MonoBehaviour
     {
         while (creditAmount > 0)
         {
-            UpdateUI();
-
-            // Проверяем просрочку
-            if (DateTime.Now > creditEndTime && !isOverdue)
+            DateTime currentGameTime = GetCurrentGameTime();
+            if (currentGameTime > creditEndTime && !isOverdue)
             {
                 isOverdue = true;
-                Debug.Log("Кредит просрочен! Начинают начисляться штрафы.");
-            }
+                SaveCreditData();
+                UpdateTimerUI();
+                UpdateDebtUI();
 
-            yield return new WaitForSeconds(1f);
+                Debug.LogWarning("РљСЂРµРґРёС‚ РїСЂРѕСЃСЂРѕС‡РµРЅ! РќР°С‡РёСЃР»РµРЅ С€С‚СЂР°С„.");
+            }
+            yield return new WaitForSeconds(0.1f);
         }
+    }
+
+    void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus) SaveCreditData();
+    }
+
+    void OnApplicationQuit()
+    {
+        SaveCreditData();
     }
 }

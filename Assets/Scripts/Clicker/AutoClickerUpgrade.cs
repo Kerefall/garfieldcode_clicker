@@ -115,7 +115,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         if (totalProfit > 0)
         {
             Clicker.Instance.Money += totalProfit * updateInterval;
-            //Debug.Log($"Applied passive income: {totalProfit * updateInterval}");
+            Debug.Log($"Applied passive income: {totalProfit * updateInterval}");
         }
     }
 
@@ -151,10 +151,10 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
         var upgrade = upgrades[index];
         if (upgrade.costText != null)
-            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()}";
+            upgrade.costText.text = upgrade.currentCost.ToString();
 
         if (upgrade.levelText != null)
-            upgrade.levelText.text = $"Куплено {upgrade.currentLevel} штук";
+            upgrade.levelText.text = $"Ур. {upgrade.currentLevel}";
 
         if (upgrade.button != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
