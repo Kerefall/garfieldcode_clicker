@@ -9,7 +9,7 @@ public class ClickerUpgradeSystem : MonoBehaviour
     {
         public string upgradeName;
         public int baseCost = 10;
-        public int clickGain = 1; // Количество добавляемых кликов за уровень
+        public int clickGain = 1;
         public Button button;
         public TextMeshProUGUI costText;
         public TextMeshProUGUI levelText;
@@ -21,6 +21,9 @@ public class ClickerUpgradeSystem : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private Upgrade[] upgrades;
     [SerializeField] private TextMeshProUGUI clickGainText;
+    [SerializeField] private float uiUpdateInterval = 0.2f;
+
+    private float uiUpdateTimer;
 
     private void Start()
     {
@@ -35,6 +38,16 @@ public class ClickerUpgradeSystem : MonoBehaviour
         UpdateUI();
     }
 
+    private void Update()
+    {
+        uiUpdateTimer += Time.deltaTime;
+        if (uiUpdateTimer >= uiUpdateInterval)
+        {
+            UpdateButtonsInteractivity();
+            uiUpdateTimer = 0f;
+        }
+    }
+
     private void InitializeUpgrades()
     {
         if (upgrades == null) return;
@@ -43,18 +56,23 @@ public class ClickerUpgradeSystem : MonoBehaviour
         {
             if (upgrades[i] == null) continue;
 
+            // Загружаем сохраненный уровень
             upgrades[i].currentLevel = PlayerPrefs.GetInt($"Upgrade_{i}_Level", 0);
+            // Рассчитываем текущую стоимость
             upgrades[i].currentCost = CalculateUpgradeCost(upgrades[i]);
+
+            // Обновляем текст цены и уровня сразу при инициализации
+            UpdateSingleUpgradeUI(i);
 
             int index = i;
             upgrades[i].button.onClick.RemoveAllListeners();
             upgrades[i].button.onClick.AddListener(() => BuyUpgrade(index));
         }
 
-        // Пересчитываем общий ClickGain после загрузки всех апгрейдов
         CalculateTotalClickGain();
     }
 
+    // Остальные методы остаются без изменений...
     private int CalculateUpgradeCost(Upgrade upgrade)
     {
         return upgrade.baseCost * (upgrade.currentLevel + 1);
@@ -74,21 +92,17 @@ public class ClickerUpgradeSystem : MonoBehaviour
 
             PlayerPrefs.SetInt($"Upgrade_{upgradeIndex}_Level", upgrade.currentLevel);
 
-            // Вместо прямого добавления к ClickGain, пересчитываем общее значение
             CalculateTotalClickGain();
-
             UpdateSingleUpgradeUI(upgradeIndex);
             Clicker.Instance.UpdateUI();
         }
     }
 
-    // Новый метод для расчета общего ClickGain
     private void CalculateTotalClickGain()
     {
         if (Clicker.Instance == null || upgrades == null) return;
 
-        int totalClickGain = 1; // Базовое значение
-
+        int totalClickGain = 1;
         foreach (var upgrade in upgrades)
         {
             if (upgrade != null)
@@ -104,11 +118,26 @@ public class ClickerUpgradeSystem : MonoBehaviour
     private void UpdateUI()
     {
         UpdateClickGainText();
+        UpdateButtonsInteractivity();
 
+        // Явно обновляем все тексты при полном обновлении UI
         if (upgrades == null) return;
         for (int i = 0; i < upgrades.Length; i++)
         {
             UpdateSingleUpgradeUI(i);
+        }
+    }
+
+    private void UpdateButtonsInteractivity()
+    {
+        if (upgrades == null || Clicker.Instance == null) return;
+
+        foreach (var upgrade in upgrades)
+        {
+            if (upgrade != null && upgrade.button != null)
+            {
+                upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
+            }
         }
     }
 
@@ -124,12 +153,16 @@ public class ClickerUpgradeSystem : MonoBehaviour
         if (Clicker.Instance == null) return;
 
         var upgrade = upgrades[index];
-        if (upgrade.costText != null)
-            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()} руб.";
 
+        // Всегда обновляем текст цены
+        if (upgrade.costText != null)
+            upgrade.costText.text = $"Цена: {upgrade.currentCost} руб.";
+
+        // Всегда обновляем текст уровня
         if (upgrade.levelText != null)
             upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
 
+        // Обновляем состояние кнопки
         if (upgrade.button != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
     }
@@ -146,14 +179,18 @@ public class ClickerUpgradeSystem : MonoBehaviour
                 upgrades[i].currentLevel = 0;
                 upgrades[i].currentCost = upgrades[i].baseCost;
                 PlayerPrefs.DeleteKey($"Upgrade_{i}_Level");
+
+                // Обновляем UI каждого апгрейда после сброса
+                UpdateSingleUpgradeUI(i);
             }
         }
 
         if (Clicker.Instance != null)
         {
-            Clicker.Instance.ClickGain = 1; // Сбрасываем к базовому значению
+            Clicker.Instance.ClickGain = 1;
             Clicker.Instance.UpdateUI();
         }
-        UpdateUI();
+
+        CalculateTotalClickGain();
     }
 }

@@ -21,8 +21,10 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private AutoClickerUpgrade[] upgrades;
     [SerializeField] private float updateInterval = 1.0f;
+    [SerializeField] private float uiUpdateInterval = 0.2f; // Интервал обновления UI
 
     private float timer = 0f;
+    private float uiUpdateTimer = 0f;
 
     private void Start()
     {
@@ -39,11 +41,20 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
     private void Update()
     {
+        // Обновление пассивного дохода
         timer += Time.deltaTime;
         if (timer >= updateInterval)
         {
             ApplyPassiveIncome();
             timer = 0f;
+        }
+
+        // Регулярное обновление UI
+        uiUpdateTimer += Time.deltaTime;
+        if (uiUpdateTimer >= uiUpdateInterval)
+        {
+            UpdateButtonsInteractivity();
+            uiUpdateTimer = 0f;
         }
     }
 
@@ -61,6 +72,9 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
             upgrades[i].currentLevel = PlayerPrefs.GetInt($"AutoClicker_{i}_Level", 0);
             upgrades[i].currentCost = CalculateUpgradeCost(upgrades[i]);
+
+            // Обновляем UI сразу при инициализации
+            UpdateSingleUpgradeUI(i);
 
             if (upgrades[i].button != null)
             {
@@ -128,6 +142,13 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
     private void UpdateUI()
     {
+        UpdateTotalPassiveProfit();
+        UpdateAllUpgradeTexts();
+        UpdateButtonsInteractivity();
+    }
+
+    private void UpdateAllUpgradeTexts()
+    {
         if (upgrades == null) return;
 
         for (int i = 0; i < upgrades.Length; i++)
@@ -136,18 +157,34 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         }
     }
 
+    private void UpdateButtonsInteractivity()
+    {
+        if (upgrades == null || Clicker.Instance == null) return;
+
+        foreach (var upgrade in upgrades)
+        {
+            if (upgrade != null && upgrade.button != null)
+            {
+                upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
+            }
+        }
+    }
+
     private void UpdateSingleUpgradeUI(int index)
     {
         if (index < 0 || index >= upgrades.Length || upgrades[index] == null) return;
-        if (Clicker.Instance == null) return;
 
         var upgrade = upgrades[index];
-        if (upgrade.costText != null)
-            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()} руб.";
 
+        // Всегда обновляем текст цены
+        if (upgrade.costText != null)
+            upgrade.costText.text = $"Цена: {upgrade.currentCost} руб.";
+
+        // Всегда обновляем текст уровня
         if (upgrade.levelText != null)
             upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
 
+        // Обновляем состояние кнопки
         if (upgrade.button != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
     }
@@ -164,13 +201,15 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
                 upgrades[i].currentLevel = 0;
                 upgrades[i].currentCost = upgrades[i].baseCost;
                 PlayerPrefs.DeleteKey($"AutoClicker_{i}_Level");
+
+                // Обновляем UI каждого апгрейда после сброса
+                UpdateSingleUpgradeUI(i);
             }
         }
         PlayerPrefs.Save();
-        UpdateTotalPassiveProfit();
-        UpdateUI();
 
-        // Обновляем Clicker, чтобы сбросить PassiveProfit
+        UpdateTotalPassiveProfit();
+
         if (Clicker.Instance != null)
         {
             Clicker.Instance.PassiveProfit = 0;
