@@ -52,6 +52,25 @@ public class Clicker : MonoBehaviour
         UpdateUI();
     }
 
+    [ContextMenu("Сбросить весь прогресс")]
+    public void ResetAllProgress()
+    {
+        // Сбрасываем основные значения
+        PlayerPrefs.DeleteKey("Money");
+        PlayerPrefs.DeleteKey("ClickGain");
+        PlayerPrefs.DeleteKey("PassiveProfit");
+        PlayerPrefs.DeleteKey("LastPlayedTime");
+
+        // Сбрасываем значения в памяти
+        Money = 0;
+        ClickGain = 1;
+        PassiveProfit = 0;
+
+        PlayerPrefs.Save();
+        UpdateUI();
+        Debug.Log("Весь прогресс сброшен!");
+    }
+
     public void Click()
     {
         Money += ClickGain;

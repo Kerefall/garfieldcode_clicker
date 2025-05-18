@@ -101,10 +101,10 @@ public class ClickerUpgradeSystem : MonoBehaviour
 
         var upgrade = upgrades[index];
         if (upgrade.costText != null)
-            upgrade.costText.text = upgrade.currentCost.ToString();
+            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()} руб.";
 
         if (upgrade.levelText != null)
-            upgrade.levelText.text = $"Ур. {upgrade.currentLevel}";
+            upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
 
         if (upgrade.button != null)
             upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
