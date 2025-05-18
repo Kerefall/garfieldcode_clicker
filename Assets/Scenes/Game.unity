@@ -13398,7 +13398,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1,000.00
+  m_text: 0.00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -16816,20 +16816,20 @@ MonoBehaviour:
   upgrades:
   - upgradeName: PaperWork
     baseCost: 50
-    clickGain: 150
+    clickGain: 1
     button: {fileID: 705660474}
     costText: {fileID: 1884064040}
     levelText: {fileID: 1763523683}
     currentLevel: 0
-    currentCost: 10
+    currentCost: 50
   - upgradeName: WorkInDelivery
     baseCost: 150
-    clickGain: 500
+    clickGain: 2
     button: {fileID: 716763794}
     costText: {fileID: 131634088}
     levelText: {fileID: 1051749599}
     currentLevel: 0
-    currentCost: 20
+    currentCost: 150
   - upgradeName: WatorWork
     baseCost: 500
     clickGain: 4
@@ -16837,7 +16837,7 @@ MonoBehaviour:
     costText: {fileID: 556864673}
     levelText: {fileID: 1428003222}
     currentLevel: 0
-    currentCost: 20
+    currentCost: 500
   - upgradeName: TutorWork
     baseCost: 1000
     clickGain: 7
@@ -16845,7 +16845,7 @@ MonoBehaviour:
     costText: {fileID: 303672156}
     levelText: {fileID: 1273489401}
     currentLevel: 0
-    currentCost: 20
+    currentCost: 1000
   - upgradeName: Mobile Phone Work
     baseCost: 3000
     clickGain: 11
@@ -16853,7 +16853,7 @@ MonoBehaviour:
     costText: {fileID: 685634586}
     levelText: {fileID: 1676776464}
     currentLevel: 0
-    currentCost: 20
+    currentCost: 3000
   - upgradeName: ComputerWork
     baseCost: 7500
     clickGain: 16
@@ -16861,7 +16861,7 @@ MonoBehaviour:
     costText: {fileID: 31012734}
     levelText: {fileID: 796689269}
     currentLevel: 0
-    currentCost: 20
+    currentCost: 7500
   - upgradeName: ProgrammingWork
     baseCost: 18000
     clickGain: 22
@@ -16869,7 +16869,7 @@ MonoBehaviour:
     costText: {fileID: 1452124257}
     levelText: {fileID: 1249012389}
     currentLevel: 0
-    currentCost: 20
+    currentCost: 18000
   clickGainText: {fileID: 1319507464}
 --- !u!1 &1707230206
 GameObject:

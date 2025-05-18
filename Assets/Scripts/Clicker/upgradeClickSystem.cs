@@ -9,7 +9,7 @@ public class ClickerUpgradeSystem : MonoBehaviour
     {
         public string upgradeName;
         public int baseCost = 10;
-        public int clickGain = 1;
+        public int clickGain = 1; // Количество добавляемых кликов за уровень
         public Button button;
         public TextMeshProUGUI costText;
         public TextMeshProUGUI levelText;
@@ -50,6 +50,9 @@ public class ClickerUpgradeSystem : MonoBehaviour
             upgrades[i].button.onClick.RemoveAllListeners();
             upgrades[i].button.onClick.AddListener(() => BuyUpgrade(index));
         }
+
+        // Пересчитываем общий ClickGain после загрузки всех апгрейдов
+        CalculateTotalClickGain();
     }
 
     private int CalculateUpgradeCost(Upgrade upgrade)
@@ -66,15 +69,36 @@ public class ClickerUpgradeSystem : MonoBehaviour
         if (Clicker.Instance.Money >= upgrade.currentCost)
         {
             Clicker.Instance.Money -= upgrade.currentCost;
-            Clicker.Instance.ClickGain += upgrade.clickGain;
             upgrade.currentLevel++;
             upgrade.currentCost = CalculateUpgradeCost(upgrade);
 
             PlayerPrefs.SetInt($"Upgrade_{upgradeIndex}_Level", upgrade.currentLevel);
+
+            // Вместо прямого добавления к ClickGain, пересчитываем общее значение
+            CalculateTotalClickGain();
+
             UpdateSingleUpgradeUI(upgradeIndex);
-            UpdateClickGainText();
             Clicker.Instance.UpdateUI();
         }
+    }
+
+    // Новый метод для расчета общего ClickGain
+    private void CalculateTotalClickGain()
+    {
+        if (Clicker.Instance == null || upgrades == null) return;
+
+        int totalClickGain = 1; // Базовое значение
+
+        foreach (var upgrade in upgrades)
+        {
+            if (upgrade != null)
+            {
+                totalClickGain += upgrade.currentLevel * upgrade.clickGain;
+            }
+        }
+
+        Clicker.Instance.ClickGain = totalClickGain;
+        UpdateClickGainText();
     }
 
     private void UpdateUI()
@@ -127,7 +151,7 @@ public class ClickerUpgradeSystem : MonoBehaviour
 
         if (Clicker.Instance != null)
         {
-            Clicker.Instance.ClickGain = 1;
+            Clicker.Instance.ClickGain = 1; // Сбрасываем к базовому значению
             Clicker.Instance.UpdateUI();
         }
         UpdateUI();

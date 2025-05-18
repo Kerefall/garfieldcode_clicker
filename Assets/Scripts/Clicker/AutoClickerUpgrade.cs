@@ -103,15 +103,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
     {
         if (Clicker.Instance == null || upgrades == null) return;
 
-        float totalProfit = 0f;
-        foreach (var upgrade in upgrades)
-        {
-            if (upgrade != null)
-            {
-                totalProfit += upgrade.profitPerSecond * upgrade.currentLevel;
-            }
-        }
-
+        float totalProfit = Clicker.Instance.PassiveProfit;
         if (totalProfit > 0)
         {
             Clicker.Instance.Money += totalProfit * updateInterval;
@@ -151,7 +143,7 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
         var upgrade = upgrades[index];
         if (upgrade.costText != null)
-            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()} руб. ";
+            upgrade.costText.text = $"Цена: {upgrade.currentCost.ToString()} руб.";
 
         if (upgrade.levelText != null)
             upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
@@ -177,5 +169,12 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         PlayerPrefs.Save();
         UpdateTotalPassiveProfit();
         UpdateUI();
+
+        // Обновляем Clicker, чтобы сбросить PassiveProfit
+        if (Clicker.Instance != null)
+        {
+            Clicker.Instance.PassiveProfit = 0;
+            Clicker.Instance.UpdateUI();
+        }
     }
 }
