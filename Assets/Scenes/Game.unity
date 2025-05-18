@@ -16815,56 +16815,56 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgrades:
   - upgradeName: PaperWork
-    baseCost: 10
-    clickGain: 100
+    baseCost: 50
+    clickGain: 150
     button: {fileID: 705660474}
     costText: {fileID: 1884064040}
     levelText: {fileID: 1763523683}
     currentLevel: 0
     currentCost: 10
   - upgradeName: WorkInDelivery
-    baseCost: 20
-    clickGain: 200
+    baseCost: 150
+    clickGain: 500
     button: {fileID: 716763794}
     costText: {fileID: 131634088}
     levelText: {fileID: 1051749599}
     currentLevel: 0
     currentCost: 20
   - upgradeName: WatorWork
-    baseCost: 20
-    clickGain: 300
+    baseCost: 500
+    clickGain: 4
     button: {fileID: 1254950444}
     costText: {fileID: 556864673}
     levelText: {fileID: 1428003222}
     currentLevel: 0
     currentCost: 20
   - upgradeName: TutorWork
-    baseCost: 20
-    clickGain: 400
+    baseCost: 1000
+    clickGain: 7
     button: {fileID: 2089709494}
     costText: {fileID: 303672156}
     levelText: {fileID: 1273489401}
     currentLevel: 0
     currentCost: 20
-  - upgradeName: Later
-    baseCost: 20
-    clickGain: 500
+  - upgradeName: Mobile Phone Work
+    baseCost: 3000
+    clickGain: 11
     button: {fileID: 339906235}
-    costText: {fileID: 0}
-    levelText: {fileID: 0}
+    costText: {fileID: 685634586}
+    levelText: {fileID: 1676776464}
     currentLevel: 0
     currentCost: 20
-  - upgradeName: Later
-    baseCost: 20
-    clickGain: 600
+  - upgradeName: ComputerWork
+    baseCost: 7500
+    clickGain: 16
     button: {fileID: 1838260381}
-    costText: {fileID: 0}
-    levelText: {fileID: 0}
+    costText: {fileID: 31012734}
+    levelText: {fileID: 796689269}
     currentLevel: 0
     currentCost: 20
   - upgradeName: ProgrammingWork
-    baseCost: 20
-    clickGain: 400
+    baseCost: 18000
+    clickGain: 22
     button: {fileID: 1567449870}
     costText: {fileID: 1452124257}
     levelText: {fileID: 1249012389}
