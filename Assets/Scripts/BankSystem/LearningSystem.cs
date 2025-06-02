@@ -33,7 +33,7 @@ public class FinancialLiteracyGame : MonoBehaviour
                 "Сейчас самое выгодное время, чтобы взять кредит",
                 "Сейчас выше проценты по вкладам"
             },
-            new int[] { 0, 2 } // Правильные ответы (индексы)
+            new int[] { 0, 2 }
         ),
         new Question(
             "В стране понизили ключевую ставку. Что можно предположить?",
@@ -95,6 +95,7 @@ public class FinancialLiteracyGame : MonoBehaviour
     };
 
     [Header("Навигация")]
+    public Button startTheoryButton;
     public Button startTestButton;
     public Button startCreditGameButton;
     public Button startSecurityGameButton;
@@ -106,26 +107,30 @@ public class FinancialLiteracyGame : MonoBehaviour
         nextTheoryButton.onClick.AddListener(NextTheoryPage);
         UpdateTheoryText();
 
-        // Тесты
+        // Навигация
+        startTheoryButton.onClick.AddListener(() => ShowPanel(theoryPanel));
         startTestButton.onClick.AddListener(() => {
-            theoryPanel.SetActive(false);
-            testPanel.SetActive(true);
+            ShowPanel(testPanel);
             ShowQuestion();
         });
+        startCreditGameButton.onClick.AddListener(() => {
+            ShowPanel(creditGamePanel);
+            InitializeCreditGame();
+        });
+        startSecurityGameButton.onClick.AddListener(() => {
+            ShowPanel(securityGamePanel);
+            ShowScamScenario();
+        });
+        backToMenuButton.onClick.AddListener(() => ShowPanel(theoryPanel));
 
+        // Тесты
         for (int i = 0; i < answerButtons.Length; i++)
         {
-            int index = i; // Для замыкания
+            int index = i;
             answerButtons[i].onClick.AddListener(() => CheckAnswer(index));
         }
 
         // Игра с кредитом
-        startCreditGameButton.onClick.AddListener(() => {
-            theoryPanel.SetActive(false);
-            creditGamePanel.SetActive(true);
-            InitializeCreditGame();
-        });
-
         amountSlider.onValueChanged.AddListener(UpdateAmountText);
 
         for (int i = 0; i < termButtons.Length; i++)
@@ -141,20 +146,22 @@ public class FinancialLiteracyGame : MonoBehaviour
         learnRefinanceButton.onClick.AddListener(ExplainRefinance);
 
         // Финансовая безопасность
-        startSecurityGameButton.onClick.AddListener(() => {
-            theoryPanel.SetActive(false);
-            securityGamePanel.SetActive(true);
-            ShowScamScenario();
-        });
-
         for (int i = 0; i < responseButtons.Length; i++)
         {
             int responseIndex = i;
             responseButtons[i].onClick.AddListener(() => HandleScamResponse(responseIndex));
         }
 
-        // Навигация
-        backToMenuButton.onClick.AddListener(ReturnToMenu);
+        // Активируем панель теории по умолчанию
+        ShowPanel(theoryPanel);
+    }
+
+    void ShowPanel(GameObject panelToShow)
+    {
+        theoryPanel.SetActive(panelToShow == theoryPanel);
+        testPanel.SetActive(panelToShow == testPanel);
+        creditGamePanel.SetActive(panelToShow == creditGamePanel);
+        securityGamePanel.SetActive(panelToShow == securityGamePanel);
     }
 
     #region Теоретическая часть
@@ -179,8 +186,7 @@ public class FinancialLiteracyGame : MonoBehaviour
     {
         if (currentQuestion >= questions.Length)
         {
-            testPanel.SetActive(false);
-            theoryPanel.SetActive(true);
+            ShowPanel(theoryPanel);
             currentQuestion = 0;
             return;
         }
@@ -213,15 +219,7 @@ public class FinancialLiteracyGame : MonoBehaviour
             }
         }
 
-        if (isCorrect)
-        {
-            Debug.Log("Правильно!");
-        }
-        else
-        {
-            Debug.Log("Неправильно!");
-        }
-
+        Debug.Log(isCorrect ? "Правильно!" : "Неправильно!");
         currentQuestion++;
         ShowQuestion();
     }
@@ -234,6 +232,8 @@ public class FinancialLiteracyGame : MonoBehaviour
         UpdateAmountText(amountSlider.value);
         resultText.text = "Выберите сумму и срок кредита";
         finalResultText.text = "";
+        earlyRepayment = false;
+        refinanced = false;
     }
 
     void UpdateAmountText(float value)
@@ -275,32 +275,19 @@ public class FinancialLiteracyGame : MonoBehaviour
     void EarlyRepayment(bool doRepayment)
     {
         earlyRepayment = doRepayment;
-
-        if (doRepayment)
-        {
-            overpayment *= 0.7f; // Сокращаем переплату на 30%
-            resultText.text = "Хороший выбор, переплата сократилась на 30%";
-        }
-        else
-        {
-            resultText.text = "Переплата не сократилась";
-        }
+        overpayment = creditAmount * interestRate * creditTerm * (doRepayment ? 0.7f : 1f);
+        resultText.text = doRepayment ?
+            "Хороший выбор, переплата сократилась на 30%" :
+            "Переплата не сократилась";
     }
 
     void Refinance(bool doRefinance)
     {
         refinanced = doRefinance;
-
-        if (doRefinance)
-        {
-            overpayment *= 0.9f; // Сокращаем переплату еще на 10%
-            resultText.text = "Переплата сократилась на 10%";
-        }
-        else
-        {
-            resultText.text = "Переплата не сократилась";
-        }
-
+        overpayment *= doRefinance ? 0.9f : 1f;
+        resultText.text = doRefinance ?
+            "Переплата сократилась на 10%" :
+            "Переплата не сократилась";
         ShowFinalResult();
     }
 
@@ -323,8 +310,7 @@ public class FinancialLiteracyGame : MonoBehaviour
     {
         if (currentScam >= scams.Length)
         {
-            securityGamePanel.SetActive(false);
-            theoryPanel.SetActive(true);
+            ShowPanel(theoryPanel);
             currentScam = 0;
             return;
         }
@@ -367,19 +353,8 @@ public class FinancialLiteracyGame : MonoBehaviour
         ShowScamScenario();
     }
     #endregion
-
-    #region Навигация
-    void ReturnToMenu()
-    {
-        testPanel.SetActive(false);
-        creditGamePanel.SetActive(false);
-        securityGamePanel.SetActive(false);
-        theoryPanel.SetActive(true);
-    }
-    #endregion
 }
 
-// Вспомогательные классы
 [System.Serializable]
 public class Question
 {
