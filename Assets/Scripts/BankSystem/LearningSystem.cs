@@ -26,8 +26,7 @@ public class FinancialLiteracyGame : MonoBehaviour
         "Вклад является хорошим доступным и понятным средством для того, чтобы минимизировать влияние инфляции на ваши сбережения.\r\nВы отдаёте деньги банку на хранение, а банк платит вам за это проценты. Чем выше ключевая ставка, тем выше проценты на вкладах.",
         "Как это работает? Банк выдаёт ваши деньги в кредиты под более высокий процент и разницу оставляет себе.\r\nОбычно, чем меньше срок, на которой открывается вклад, тем выше процент. Это из-за того, что банку проще предсказать поведение экономики в стране на короткий срок, чем на более длинный.",
         "Иногда случается так, что деньги нужны здесь и сейчас. В этом вам поможет такой финансовый инструмент, как кредит.\r\nКредит – когда вам дают деньги в долг, но с условием вернуть больше, чем взяли. Разница между «взял» и «вернул» — это процент, под который выдаётся кредит.",
-        "Из чего процент складывается?\r\n1.\tВ первую очередь процент зависит от ключевой ставки. Чем она выше, тем дороже кредиты\r",
-        "2. Риски банка. Да, выдавать кредиты для банка риск потерять деньги, поэтому если у вас плохая кредитная история или маленькая зарплата, то банк поднимет процент дабы перестраховаться\r\n3.\tПрибыль банка. Банк тоже хочет заработать и поэтому «накидывает» пару процентов",
+        "Из чего процент складывается?\r\n1.\tВ первую очередь процент зависит от ключевой ставки. Чем она выше, тем дороже кредиты\r\n2.\tРиски банка. Да, выдавать кредиты для банка риск потерять деньги, поэтому если у вас плохая кредитная история или маленькая зарплата, то банк поднимет процент дабы перестраховаться\r\n3.\tПрибыль банка. Банк тоже хочет заработать и поэтому «накидывает» пару процентов",
         "Что такое переплата по кредиту?\r\nПереплата = Сумма кредита * Годовой процент * Срок в годах \r\nТо есть это то, сколько вы платите за возможность получить деньги здесь и сейчас.\r\nДля того, чтобы сократить переплату нужно уменьшать срок кредита и по возможности погашать досрочно.",
         "В досрочном погашении кредита может помочь рефинансирование. Если появляется возможность открыть кредит под более низкий процент, то может быть выгодным открыть новый и погасить им старый. Но нужно учитывать, что за рефинансирование банк может взымать комиссию.",
         "1.\t«Банк звонит»\r\n— Вам говорят, что ваш счёт взламывают, и просят:\r\no\tПеревести деньги на «безопасный счёт».\r\no\tНазвать данные карты, код из SMS или пароль от Госуслуг.\r\n→ Это обман! Банк никогда не просит такие данные.",
@@ -232,6 +231,7 @@ public class FinancialLiteracyGame : MonoBehaviour
     {
         currentQuestion = 0;
         resultText.text = "";
+        selectedAnswers = new bool[answerButtons.Length];
         ShowQuestion();
     }
 
@@ -244,24 +244,24 @@ public class FinancialLiteracyGame : MonoBehaviour
             return;
         }
 
+        // Сбрасываем выбранные ответы
         for (int i = 0; i < selectedAnswers.Length; i++)
         {
             selectedAnswers[i] = false;
-            if (i < answerButtons.Length)
-            {
-                answerButtons[i].image.color = Color.white;
-            }
         }
 
         questionText.text = questions[currentQuestion].question;
         resultText.text = "";
 
+        // Убедимся, что у нас достаточно кнопок для вариантов ответов
+        int answersCount = questions[currentQuestion].answers.Length;
         for (int i = 0; i < answerButtons.Length; i++)
         {
-            if (i < questions[currentQuestion].answers.Length)
+            if (i < answersCount)
             {
                 answerButtons[i].gameObject.SetActive(true);
                 answerButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = questions[currentQuestion].answers[i];
+                answerButtons[i].image.color = Color.white;
             }
             else
             {
@@ -272,6 +272,9 @@ public class FinancialLiteracyGame : MonoBehaviour
 
     void SelectAnswer(int answerIndex)
     {
+        // Проверяем, что индекс в пределах массива ответов текущего вопроса
+        if (answerIndex >= questions[currentQuestion].answers.Length) return;
+
         selectedAnswers[answerIndex] = !selectedAnswers[answerIndex];
         answerButtons[answerIndex].image.color = selectedAnswers[answerIndex] ? Color.yellow : Color.white;
     }
@@ -281,6 +284,7 @@ public class FinancialLiteracyGame : MonoBehaviour
         bool allCorrect = true;
         bool anySelected = false;
 
+        // Проверяем, все ли правильные ответы выбраны и нет ли лишних
         for (int i = 0; i < questions[currentQuestion].answers.Length; i++)
         {
             bool shouldBeSelected = System.Array.IndexOf(questions[currentQuestion].correctAnswers, i) >= 0;
@@ -305,6 +309,7 @@ public class FinancialLiteracyGame : MonoBehaviour
         if (allCorrect)
         {
             resultText.text = "Правильно!";
+            // Подсвечиваем правильные ответы зеленым
             foreach (int correctIndex in questions[currentQuestion].correctAnswers)
             {
                 answerButtons[correctIndex].image.color = Color.green;
@@ -313,11 +318,12 @@ public class FinancialLiteracyGame : MonoBehaviour
         else
         {
             resultText.text = "Неправильно!";
+            // Подсвечиваем правильные ответы зеленым, а выбранные неправильные - красным
             foreach (int correctIndex in questions[currentQuestion].correctAnswers)
             {
                 answerButtons[correctIndex].image.color = Color.green;
             }
-            for (int i = 0; i < selectedAnswers.Length; i++)
+            for (int i = 0; i < questions[currentQuestion].answers.Length; i++)
             {
                 if (selectedAnswers[i] && System.Array.IndexOf(questions[currentQuestion].correctAnswers, i) < 0)
                 {
