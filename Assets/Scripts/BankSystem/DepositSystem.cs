@@ -28,6 +28,7 @@ public class BankSystem : MonoBehaviour
     private float depositInterest = 0f;
     private int depositDurationDays = 0;
     private float depositDays;
+    private bool isCreate = false;
 
     private Coroutine interestCoroutine;
     private Coroutine timerCoroutine;
@@ -74,13 +75,15 @@ public class BankSystem : MonoBehaviour
 
             int durationDays = durationDaysOptions[durationIndex];
 
-            if (amount > 0 && durationDays <= maxDepositDuration && amount <= Clicker.Instance.Money)
+            if (amount > 0 && durationDays <= maxDepositDuration && amount <= Clicker.Instance.Money && !isCreate)
             {
                 Debug.Log("Dep was created");
                 Clicker.Instance.Money -= amount;
                 depositAmount = amount;
                 depositDurationDays = durationDays;
                 depositInterest = 0f;
+                depositDays = 0;
+                isCreate = true;
 
                 if (interestCoroutine != null) StopCoroutine(interestCoroutine);
                 if (timerCoroutine != null) StopCoroutine(timerCoroutine);
@@ -101,6 +104,7 @@ public class BankSystem : MonoBehaviour
 
             depositAmount = 0;
             depositInterest = 0;
+            isCreate = false;
 
             if (interestCoroutine != null) StopCoroutine(interestCoroutine);
             if (timerCoroutine != null) StopCoroutine(timerCoroutine);
@@ -148,6 +152,7 @@ public class BankSystem : MonoBehaviour
 
         depositAmount = 0;
         depositInterest = 0;
+        isCreate = false;
 
         if (interestCoroutine != null) StopCoroutine(interestCoroutine);
         if (timerCoroutine != null) StopCoroutine(timerCoroutine);
