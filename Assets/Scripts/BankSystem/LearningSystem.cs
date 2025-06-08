@@ -12,7 +12,6 @@ public class FinancialLiteracyGame : MonoBehaviour
     public Button closeTheoryButton;
     public TextMeshProUGUI theoryText;
     private int currentTheoryPage = 0;
-    private int theoryFontSize = 80;
 
     [Header("Панель меню")]
     public GameObject teachingPanel;
@@ -26,7 +25,9 @@ public class FinancialLiteracyGame : MonoBehaviour
         "Вклад является хорошим доступным и понятным средством для того, чтобы минимизировать влияние инфляции на ваши сбережения.\r\nВы отдаёте деньги банку на хранение, а банк платит вам за это проценты. Чем выше ключевая ставка, тем выше проценты на вкладах.",
         "Как это работает? Банк выдаёт ваши деньги в кредиты под более высокий процент и разницу оставляет себе.\r\nОбычно, чем меньше срок, на которой открывается вклад, тем выше процент. Это из-за того, что банку проще предсказать поведение экономики в стране на короткий срок, чем на более длинный.",
         "Иногда случается так, что деньги нужны здесь и сейчас. В этом вам поможет такой финансовый инструмент, как кредит.\r\nКредит – когда вам дают деньги в долг, но с условием вернуть больше, чем взяли. Разница между «взял» и «вернул» — это процент, под который выдаётся кредит.",
-        "Из чего процент складывается?\r\n1.\tВ первую очередь процент зависит от ключевой ставки. Чем она выше, тем дороже кредиты\r\n2.\tРиски банка. Да, выдавать кредиты для банка риск потерять деньги, поэтому если у вас плохая кредитная история или маленькая зарплата, то банк поднимет процент дабы перестраховаться\r\n3.\tПрибыль банка. Банк тоже хочет заработать и поэтому «накидывает» пару процентов",
+        "Из чего процент складывается?\r\n1.\tВ первую очередь процент зависит от ключевой ставки. Чем она выше, тем дороже кредиты\r\n",
+        "2. Риски банка. Да, выдавать кредиты для банка риск потерять деньги, поэтому если у вас плохая кредитная история или маленькая зарплата, то банк поднимет процент дабы перестраховаться\r\n",
+        "3.\tПрибыль банка. Банк тоже хочет заработать и поэтому «накидывает» пару процентов",
         "Что такое переплата по кредиту?\r\nПереплата = Сумма кредита * Годовой процент * Срок в годах \r\nТо есть это то, сколько вы платите за возможность получить деньги здесь и сейчас.\r\nДля того, чтобы сократить переплату нужно уменьшать срок кредита и по возможности погашать досрочно.",
         "В досрочном погашении кредита может помочь рефинансирование. Если появляется возможность открыть кредит под более низкий процент, то может быть выгодным открыть новый и погасить им старый. Но нужно учитывать, что за рефинансирование банк может взымать комиссию.",
         "1.\t«Банк звонит»\r\n— Вам говорят, что ваш счёт взламывают, и просят:\r\no\tПеревести деньги на «безопасный счёт».\r\no\tНазвать данные карты, код из SMS или пароль от Госуслуг.\r\n→ Это обман! Банк никогда не просит такие данные.",
@@ -40,57 +41,103 @@ public class FinancialLiteracyGame : MonoBehaviour
     public GameObject testPanel;
     public TextMeshProUGUI questionText;
     public Button[] answerButtons;
+    public TextMeshProUGUI[] answerTexts;
     public Button confirmButton;
+    public Button backFromTestButton;
     public TextMeshProUGUI resultText;
     private int currentQuestion = 0;
     private bool[] selectedAnswers;
+    private int score;
+
+    [System.Serializable]
+    public class Question
+    {
+        public string question;
+        public string[] answers;
+        public int[] correctAnswers;
+
+        public Question(string q, string[] a, int[] ca)
+        {
+            question = q;
+            answers = a;
+            correctAnswers = ca;
+        }
+    }
 
     private Question[] questions = {
         new Question(
             "В стране подняли ключевую ставку. Что можно предположить?",
-            new string[] {
-                "Наблюдается рост инфляции",
-                "Сейчас самое выгодное время, чтобы взять кредит",
-                "Сейчас выше проценты по вкладам"
-            },
+            new string[] { "Наблюдается рост инфляции", "Сейчас самое выгодное время, чтобы взять кредит", "Сейчас выше проценты по вкладам" },
             new int[] { 0, 2 }
         ),
         new Question(
             "В стране понизили ключевую ставку. Что можно предположить?",
-            new string[] {
-                "Наблюдается рост инфляции",
-                "Стало более выгодно брать кредит",
-                "Рост инфляции сократился"
-            },
+            new string[] { "Наблюдается рост инфляции", "Стало более выгодно брать кредит", "Наблюдается снижение инфляции" },
             new int[] { 1, 2 }
+        ),
+        new Question(
+            "Что из перечисленного поможет уменьшить итоговую переплату по кредиту?",
+            new string[] { "Увеличение срока кредита", "Досрочное погашение", "Рефинансирование под более низкий процент" },
+            new int[] { 1, 2 }
+        ),
+        new Question(
+            "Вам звонит «сотрудник банка» и говорит, что ваш счёт пытаются взломать. Какое его действие должно вас насторожить?",
+            new string[] { "Просьба назвать код из SMS", "Предложение заблокировать карту", "Просьба перевести деньги на 'безопасный счёт'" },
+            new int[] { 0, 2 }
+        ),
+        new Question(
+            "Что такое инфляция?",
+            new string[] { "Снижение общего уровня цен", "Процесс, при котором деньги со временем теряют свою покупательную способность", "Увеличение количества денег в обращении" },
+            new int[] { 1 }
         )
     };
 
-    [Header("Мини-игра с кредитом")]
+    [Header("Мини-игра с кредитом: Общие элементы")]
     public GameObject creditGamePanel;
     public Slider amountSlider;
     public TextMeshProUGUI amountText;
-    public Button[] termButtons;
     public TextMeshProUGUI resultTextCredit;
-    public Button earlyRepaymentButton;
-    public Button noRepaymentButton;
-    public Button refinanceButton;
-    public Button noRefinanceButton;
-    public Button learnRefinanceButton;
     public TextMeshProUGUI finalResultText;
+
+    [Header("Мини-игра с кредитом: Группы этапов")]
+    public GameObject termSelectionGroup;
+    public GameObject earlyRepaymentGroup;
+    public GameObject refinanceGroup;
+
+    [Header("Мини-игра с кредитом: Кнопки")]
+    public Button[] termButtons;
+    public Button[] earlyRepaymentButtons;
+    public Button[] refinanceButtons;
 
     private float creditAmount;
     private int creditTerm;
     private float interestRate;
-    private float overpayment;
-    private bool earlyRepayment = false;
-    private bool refinanced = false;
+    private float initialOverpayment;
+    private float finalOverpayment;
+    private bool hasChosenTerm = false;
 
     [Header("Финансовая безопасность")]
     public GameObject securityGamePanel;
     public TextMeshProUGUI scamMessageText;
-    public Button[] responseButtons;
+    public Button[] responseButtons_Security;
     public TextMeshProUGUI securityResultText;
+
+    [System.Serializable]
+    public class ScamScenario
+    {
+        public string message;
+        public string[] responses;
+        public int correctResponse;
+        public string explanation;
+
+        public ScamScenario(string msg, string[] res, int correct, string expl)
+        {
+            message = msg;
+            responses = res;
+            correctResponse = correct;
+            explanation = expl;
+        }
+    }
 
     private int currentScam = 0;
     private ScamScenario[] scams = {
@@ -123,115 +170,105 @@ public class FinancialLiteracyGame : MonoBehaviour
 
     void Start()
     {
-        // Теория
-        theoryText.fontSize = theoryFontSize;
-        nextTheoryButton.onClick.AddListener(NextTheoryPage);
-        prevTheoryButton.onClick.AddListener(PrevTheoryPage);
-        closeTheoryButton.onClick.AddListener(CloseTheory);
-        UpdateTheoryText();
+        // *** ИЗМЕНЕНИЕ: Установка размера шрифта для всех кнопок ***
+        SetAllButtonFontSizes(55f);
 
-        // Навигация
-        startTheoryButton.onClick.AddListener(() => ShowPanel(theoryPanel));
-        startTestButton.onClick.AddListener(() => {
-            ShowPanel(testPanel);
-            InitializeTest();
-        });
-        startCreditGameButton.onClick.AddListener(() => {
-            ShowPanel(creditGamePanel);
-            InitializeCreditGame();
-        });
-        startSecurityGameButton.onClick.AddListener(() => {
-            ShowPanel(securityGamePanel);
-            ShowScamScenario();
-        });
-        backToMenuButton.onClick.AddListener(() => ShowPanel(teachingPanel));
+        // === Настройка обработчиков кнопок ===
+        if (nextTheoryButton != null) nextTheoryButton.onClick.AddListener(NextTheoryPage);
+        if (prevTheoryButton != null) prevTheoryButton.onClick.AddListener(PrevTheoryPage);
+        if (closeTheoryButton != null) closeTheoryButton.onClick.AddListener(CloseTheory);
 
-        // Тесты
-        selectedAnswers = new bool[answerButtons.Length];
+        if (startTheoryButton != null) startTheoryButton.onClick.AddListener(() => ShowPanel(theoryPanel));
+        if (startTestButton != null) startTestButton.onClick.AddListener(() => { ShowPanel(testPanel); InitializeTest(); });
+        if (startCreditGameButton != null) startCreditGameButton.onClick.AddListener(() => { ShowPanel(creditGamePanel); InitializeCreditGame(); });
+        if (startSecurityGameButton != null) startSecurityGameButton.onClick.AddListener(() => { ShowPanel(securityGamePanel); InitializeSecurityGame(); });
+        if (backToMenuButton != null) backToMenuButton.onClick.AddListener(() => ShowPanel(teachingPanel));
+        if (backFromTestButton != null) backFromTestButton.onClick.AddListener(() => ShowPanel(teachingPanel));
+
         for (int i = 0; i < answerButtons.Length; i++)
         {
             int index = i;
-            answerButtons[i].onClick.AddListener(() => SelectAnswer(index));
+            if (answerButtons[i] != null) answerButtons[i].onClick.AddListener(() => SelectAnswer(index));
         }
-        confirmButton.onClick.AddListener(ConfirmAnswer);
+        if (confirmButton != null) confirmButton.onClick.AddListener(ConfirmAnswer);
 
-        // Игра с кредитом
-        amountSlider.onValueChanged.AddListener(UpdateAmountText);
-
+        if (amountSlider != null) amountSlider.onValueChanged.AddListener(UpdateAmountText);
         for (int i = 0; i < termButtons.Length; i++)
         {
-            int termIndex = i;
-            termButtons[i].onClick.AddListener(() => SelectTerm(termIndex));
+            int index = i;
+            if (termButtons[i] != null) termButtons[i].onClick.AddListener(() => SelectTerm(index));
+        }
+        for (int i = 0; i < earlyRepaymentButtons.Length; i++)
+        {
+            int index = i;
+            if (earlyRepaymentButtons[i] != null) earlyRepaymentButtons[i].onClick.AddListener(() => HandleEarlyRepayment(index));
+        }
+        for (int i = 0; i < refinanceButtons.Length; i++)
+        {
+            int index = i;
+            if (refinanceButtons[i] != null) refinanceButtons[i].onClick.AddListener(() => HandleRefinance(index));
         }
 
-        earlyRepaymentButton.onClick.AddListener(() => EarlyRepayment(true));
-        noRepaymentButton.onClick.AddListener(() => EarlyRepayment(false));
-        refinanceButton.onClick.AddListener(() => Refinance(true));
-        noRefinanceButton.onClick.AddListener(() => Refinance(false));
-        learnRefinanceButton.onClick.AddListener(ExplainRefinance);
-
-        // Финансовая безопасность
-        for (int i = 0; i < responseButtons.Length; i++)
+        for (int i = 0; i < responseButtons_Security.Length; i++)
         {
             int responseIndex = i;
-            responseButtons[i].onClick.AddListener(() => HandleScamResponse(responseIndex));
+            if (responseButtons_Security[i] != null) responseButtons_Security[i].onClick.AddListener(() => HandleScamResponse(responseIndex));
         }
 
-        // Активируем панель меню по умолчанию
         ShowPanel(teachingPanel);
     }
 
     void ShowPanel(GameObject panelToShow)
     {
-        teachingPanel.SetActive(panelToShow == teachingPanel);
-        theoryPanel.SetActive(panelToShow == theoryPanel);
-        testPanel.SetActive(panelToShow == testPanel);
-        creditGamePanel.SetActive(panelToShow == creditGamePanel);
-        securityGamePanel.SetActive(panelToShow == securityGamePanel);
+        if (teachingPanel != null) teachingPanel.SetActive(panelToShow == teachingPanel);
+        if (theoryPanel != null) theoryPanel.SetActive(panelToShow == theoryPanel);
+        if (testPanel != null) testPanel.SetActive(panelToShow == testPanel);
+        if (creditGamePanel != null) creditGamePanel.SetActive(panelToShow == creditGamePanel);
+        if (securityGamePanel != null) securityGamePanel.SetActive(panelToShow == securityGamePanel);
     }
 
     #region Теоретическая часть
     void NextTheoryPage()
     {
-        currentTheoryPage++;
-        if (currentTheoryPage >= theoryPages.Length)
+        if (currentTheoryPage < theoryPages.Length - 1)
         {
-            currentTheoryPage = 0;
+            currentTheoryPage++;
+            UpdateTheoryText();
         }
-        UpdateTheoryText();
     }
 
     void PrevTheoryPage()
     {
-        currentTheoryPage--;
-        if (currentTheoryPage < 0)
+        if (currentTheoryPage > 0)
         {
-            currentTheoryPage = theoryPages.Length - 1;
+            currentTheoryPage--;
+            UpdateTheoryText();
         }
-        UpdateTheoryText();
     }
 
     void UpdateTheoryText()
     {
-        theoryText.text = theoryPages[currentTheoryPage];
-
-        // Обновляем состояние кнопок навигации
-        prevTheoryButton.interactable = (currentTheoryPage > 0);
-        nextTheoryButton.interactable = (currentTheoryPage < theoryPages.Length - 1);
+        if (theoryText != null) theoryText.text = theoryPages[currentTheoryPage];
+        if (prevTheoryButton != null) prevTheoryButton.interactable = (currentTheoryPage > 0);
+        if (nextTheoryButton != null) nextTheoryButton.interactable = (currentTheoryPage < theoryPages.Length - 1);
     }
 
-    void CloseTheory()
-    {
-        ShowPanel(teachingPanel);
-    }
+    void CloseTheory() { ShowPanel(teachingPanel); }
     #endregion
 
     #region Тестовая часть
     void InitializeTest()
     {
+        score = 0;
         currentQuestion = 0;
-        resultText.text = "";
         selectedAnswers = new bool[answerButtons.Length];
+
+        if (resultText != null) resultText.text = "";
+        if (questionText != null) questionText.gameObject.SetActive(true);
+
+        if (confirmButton != null) { confirmButton.gameObject.SetActive(true); confirmButton.interactable = false; }
+        if (backFromTestButton != null) backFromTestButton.gameObject.SetActive(false);
+
         ShowQuestion();
     }
 
@@ -239,107 +276,233 @@ public class FinancialLiteracyGame : MonoBehaviour
     {
         if (currentQuestion >= questions.Length)
         {
-            resultText.text = "Тест завершен!";
-            StartCoroutine(ReturnToMenuAfterDelay(2f));
+            EndTest();
             return;
         }
 
-        // Сбрасываем выбранные ответы
-        for (int i = 0; i < selectedAnswers.Length; i++)
-        {
-            selectedAnswers[i] = false;
-        }
+        if (questionText != null) questionText.text = questions[currentQuestion].question;
+        if (resultText != null) resultText.text = "";
 
-        questionText.text = questions[currentQuestion].question;
-        resultText.text = "";
-
-        // Убедимся, что у нас достаточно кнопок для вариантов ответов
-        int answersCount = questions[currentQuestion].answers.Length;
         for (int i = 0; i < answerButtons.Length; i++)
         {
-            if (i < answersCount)
+            bool hasAnswer = i < questions[currentQuestion].answers.Length;
+            if (answerButtons[i] != null)
             {
-                answerButtons[i].gameObject.SetActive(true);
-                answerButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = questions[currentQuestion].answers[i];
+                answerButtons[i].gameObject.SetActive(hasAnswer);
+                answerButtons[i].interactable = true;
                 answerButtons[i].image.color = Color.white;
             }
-            else
+
+            if (hasAnswer && i < answerTexts.Length && answerTexts[i] != null)
             {
-                answerButtons[i].gameObject.SetActive(false);
+                answerTexts[i].text = questions[currentQuestion].answers[i];
+            }
+            if (i < selectedAnswers.Length)
+            {
+                selectedAnswers[i] = false;
             }
         }
+
+        if (confirmButton != null) confirmButton.interactable = false;
     }
 
     void SelectAnswer(int answerIndex)
     {
-        // Проверяем, что индекс в пределах массива ответов текущего вопроса
-        if (answerIndex >= questions[currentQuestion].answers.Length) return;
+        if (answerIndex >= questions[currentQuestion].answers.Length || answerIndex >= selectedAnswers.Length) return;
 
         selectedAnswers[answerIndex] = !selectedAnswers[answerIndex];
         answerButtons[answerIndex].image.color = selectedAnswers[answerIndex] ? Color.yellow : Color.white;
+
+        if (confirmButton != null) confirmButton.interactable = System.Array.Exists(selectedAnswers, x => x);
     }
 
     void ConfirmAnswer()
     {
-        bool allCorrect = true;
-        bool anySelected = false;
+        if (currentQuestion >= questions.Length) return;
 
-        // Проверяем, все ли правильные ответы выбраны и нет ли лишних
+        if (confirmButton != null) confirmButton.interactable = false;
+        foreach (var button in answerButtons)
+        {
+            if (button != null) button.interactable = false;
+        }
+
+        bool allCorrect = true;
         for (int i = 0; i < questions[currentQuestion].answers.Length; i++)
         {
-            bool shouldBeSelected = System.Array.IndexOf(questions[currentQuestion].correctAnswers, i) >= 0;
+            if (i >= selectedAnswers.Length || i >= answerButtons.Length)
+            {
+                allCorrect = false;
+                break;
+            }
 
-            if (selectedAnswers[i] != shouldBeSelected)
+            bool isCorrectAnswer = System.Array.IndexOf(questions[currentQuestion].correctAnswers, i) != -1;
+            if (selectedAnswers[i] != isCorrectAnswer)
             {
                 allCorrect = false;
             }
-
-            if (selectedAnswers[i])
-            {
-                anySelected = true;
-            }
         }
 
-        if (!anySelected)
+        for (int i = 0; i < questions[currentQuestion].answers.Length; i++)
         {
-            resultText.text = "Выберите хотя бы один ответ!";
-            return;
+            if (i >= answerButtons.Length) break;
+
+            bool isCorrect = System.Array.IndexOf(questions[currentQuestion].correctAnswers, i) != -1;
+            if (isCorrect)
+            {
+                answerButtons[i].image.color = Color.green;
+            }
+            else if (selectedAnswers[i] && !isCorrect)
+            {
+                answerButtons[i].image.color = Color.red;
+            }
         }
 
         if (allCorrect)
         {
-            resultText.text = "Правильно!";
-            // Подсвечиваем правильные ответы зеленым
-            foreach (int correctIndex in questions[currentQuestion].correctAnswers)
-            {
-                answerButtons[correctIndex].image.color = Color.green;
-            }
+            if (resultText != null) resultText.text = "Правильно!";
+            score++;
         }
         else
         {
-            resultText.text = "Неправильно!";
-            // Подсвечиваем правильные ответы зеленым, а выбранные неправильные - красным
-            foreach (int correctIndex in questions[currentQuestion].correctAnswers)
-            {
-                answerButtons[correctIndex].image.color = Color.green;
-            }
-            for (int i = 0; i < questions[currentQuestion].answers.Length; i++)
-            {
-                if (selectedAnswers[i] && System.Array.IndexOf(questions[currentQuestion].correctAnswers, i) < 0)
-                {
-                    answerButtons[i].image.color = Color.red;
-                }
-            }
+            if (resultText != null) resultText.text = "Неправильно!";
         }
 
-        StartCoroutine(NextQuestionAfterDelay(2f));
+        currentQuestion++;
+        StartCoroutine(NextQuestionAfterDelay(2.0f));
     }
 
     IEnumerator NextQuestionAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        currentQuestion++;
         ShowQuestion();
+    }
+
+    void EndTest()
+    {
+        if (questionText != null) questionText.gameObject.SetActive(false);
+        if (confirmButton != null) confirmButton.gameObject.SetActive(false);
+        foreach (var button in answerButtons)
+        {
+            if (button != null) button.gameObject.SetActive(false);
+        }
+
+        if (resultText != null)
+        {
+            resultText.text = $"Тест завершен!\nВаш результат: {score} из {questions.Length}";
+        }
+        else
+        {
+            Debug.LogError("ОШИБКА: UI элемент 'resultText' не назначен в инспекторе!");
+        }
+
+        if (backFromTestButton != null)
+        {
+            backFromTestButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("ОШИБКА: Кнопка 'backFromTestButton' не назначена в инспекторе!");
+        }
+    }
+
+    #endregion
+
+    #region Мини-игра с кредитом
+    void InitializeCreditGame()
+    {
+        if (amountSlider != null)
+        {
+            amountSlider.value = amountSlider.minValue;
+            UpdateAmountText(amountSlider.value);
+            amountSlider.interactable = true;
+        }
+        hasChosenTerm = false;
+        if (resultTextCredit != null) resultTextCredit.text = "Выберите сумму и срок кредита";
+        if (finalResultText != null) finalResultText.gameObject.SetActive(false);
+        if (backFromTestButton != null) backFromTestButton.gameObject.SetActive(true);
+
+        if (termSelectionGroup != null) termSelectionGroup.SetActive(true);
+        if (earlyRepaymentGroup != null) earlyRepaymentGroup.SetActive(false);
+        if (refinanceGroup != null) refinanceGroup.SetActive(false);
+    }
+
+    void UpdateAmountText(float value)
+    {
+        creditAmount = value;
+        if (amountText != null) amountText.text = $"Сумма кредита: {creditAmount:F0} руб.";
+    }
+
+    void SelectTerm(int termIndex)
+    {
+        if (hasChosenTerm) return;
+
+        switch (termIndex)
+        {
+            case 0: creditTerm = 1; interestRate = 0.15f; resultTextCredit.text = "Отличный выбор!"; break;
+            case 1: creditTerm = 3; interestRate = 0.12f; resultTextCredit.text = "Первый вариант более выгоден."; break;
+            case 2: creditTerm = 5; interestRate = 0.10f; resultTextCredit.text = "Первый вариант более выгоден."; break;
+        }
+        hasChosenTerm = true;
+        if (amountSlider != null) amountSlider.interactable = false;
+
+        initialOverpayment = creditAmount * interestRate * creditTerm;
+        finalOverpayment = initialOverpayment;
+        resultTextCredit.text += $"\nПереплата составит: {initialOverpayment:F0} руб.";
+
+        StartCoroutine(ShowNextGroup(termSelectionGroup, earlyRepaymentGroup, 2.5f));
+    }
+
+    void HandleEarlyRepayment(int choiceIndex)
+    {
+        string feedback = "";
+        bool advanceToNextStep = true;
+        switch (choiceIndex)
+        {
+            case 0:
+                finalOverpayment = initialOverpayment * 0.7f;
+                feedback = "Хороший выбор, переплата сократилась на 30%";
+                break;
+            case 1:
+                feedback = "Переплата не сократилась";
+                break;
+            case 2:
+                feedback = "Подумайте еще раз.";
+                advanceToNextStep = false;
+                break;
+        }
+        resultTextCredit.text = feedback;
+        if (advanceToNextStep)
+        {
+            StartCoroutine(ShowNextGroup(earlyRepaymentGroup, refinanceGroup, 2.5f));
+        }
+    }
+
+    void HandleRefinance(int choiceIndex)
+    {
+        string feedback = "";
+        bool finishGame = true;
+        float refinanceReduction = finalOverpayment * 0.1f;
+        switch (choiceIndex)
+        {
+            case 0:
+                finalOverpayment -= refinanceReduction;
+                feedback = "Переплата сократилась на 10%";
+                break;
+            case 1:
+                feedback = "Переплата не сократилась";
+                break;
+            case 2:
+                feedback = "Рекомендуем прочесть теоретический материал.";
+                finishGame = false;
+                break;
+        }
+        resultTextCredit.text = feedback;
+        if (finishGame)
+        {
+            if (refinanceGroup != null) refinanceGroup.SetActive(false);
+            ShowFinalResult();
+            StartCoroutine(ReturnToMenuAfterDelay(4f));
+        }
     }
 
     IEnumerator ReturnToMenuAfterDelay(float delay)
@@ -347,167 +510,139 @@ public class FinancialLiteracyGame : MonoBehaviour
         yield return new WaitForSeconds(delay);
         ShowPanel(teachingPanel);
     }
-    #endregion
 
-    #region Мини-игра с кредитом
-    void InitializeCreditGame()
+    IEnumerator ShowNextGroup(GameObject groupToHide, GameObject groupToShow, float delay)
     {
-        amountSlider.value = 50000;
-        UpdateAmountText(amountSlider.value);
-        resultTextCredit.text = "Выберите сумму и срок кредита";
-        finalResultText.text = "";
-        earlyRepayment = false;
-        refinanced = false;
-    }
-
-    void UpdateAmountText(float value)
-    {
-        creditAmount = value;
-        amountText.text = $"Сумма кредита: {creditAmount:F0} руб.";
-    }
-
-    void SelectTerm(int termIndex)
-    {
-        switch (termIndex)
-        {
-            case 0: // 1 год
-                creditTerm = 1;
-                interestRate = 0.15f;
-                resultTextCredit.text = "Отличный выбор!";
-                break;
-            case 1: // 3 года
-                creditTerm = 3;
-                interestRate = 0.12f;
-                resultTextCredit.text = "Первый вариант более выгоден";
-                break;
-            case 2: // 5 лет
-                creditTerm = 5;
-                interestRate = 0.10f;
-                resultTextCredit.text = "Первый вариант более выгоден";
-                break;
-        }
-
-        CalculateOverpayment();
-    }
-
-    void CalculateOverpayment()
-    {
-        overpayment = creditAmount * interestRate * creditTerm;
-        resultTextCredit.text += $"\nПереплата составит: {overpayment:F0} руб.";
-    }
-
-    void EarlyRepayment(bool doRepayment)
-    {
-        earlyRepayment = doRepayment;
-        overpayment = creditAmount * interestRate * creditTerm * (doRepayment ? 0.7f : 1f);
-        resultTextCredit.text = doRepayment ?
-            "Хороший выбор, переплата сократилась на 30%" :
-            "Переплата не сократилась";
-    }
-
-    void Refinance(bool doRefinance)
-    {
-        refinanced = doRefinance;
-        overpayment *= doRefinance ? 0.9f : 1f;
-        resultTextCredit.text = doRefinance ?
-            "Переплата сократилась на 10%" :
-            "Переплата не сократилась";
-        ShowFinalResult();
-    }
-
-    void ExplainRefinance()
-    {
-        resultTextCredit.text = "Рефинансирование - замена текущего кредита на новый с лучшими условиями. " +
-                          "Может сократить переплату, но иногда включает комиссию.";
+        yield return new WaitForSeconds(delay);
+        if (groupToHide != null) groupToHide.SetActive(false);
+        if (groupToShow != null) groupToShow.SetActive(true);
+        if (resultTextCredit != null) resultTextCredit.text = "Выберите действие:";
     }
 
     void ShowFinalResult()
     {
-        finalResultText.text = $"Итоговая переплата: {overpayment:F0} руб.\n" +
-                              $"{(earlyRepayment ? "✓ Досрочное погашение" : "✗ Без досрочного погашения")}\n" +
-                              $"{(refinanced ? "✓ Рефинансирование" : "✗ Без рефинансирования")}";
+        if (finalResultText != null)
+        {
+            finalResultText.gameObject.SetActive(true);
+            finalResultText.text = $"Итоговая переплата по кредиту составила: {finalOverpayment:F0} руб.";
+        }
+        if (resultTextCredit != null) resultTextCredit.text = "";
     }
     #endregion
 
     #region Финансовая безопасность
+    void InitializeSecurityGame()
+    {
+        currentScam = 0;
+        if (backFromTestButton != null) backFromTestButton.gameObject.SetActive(true);
+        ShowScamScenario();
+    }
+
     void ShowScamScenario()
     {
         if (currentScam >= scams.Length)
         {
-            currentScam = 0;
             ShowPanel(teachingPanel);
             return;
         }
 
-        scamMessageText.text = scams[currentScam].message;
-        securityResultText.text = "";
+        if (scamMessageText != null) scamMessageText.text = scams[currentScam].message;
+        if (securityResultText != null) securityResultText.text = "";
 
-        for (int i = 0; i < responseButtons.Length; i++)
+        for (int i = 0; i < responseButtons_Security.Length; i++)
         {
+            if (responseButtons_Security[i] == null) continue;
+
             if (i < scams[currentScam].responses.Length)
             {
-                responseButtons[i].gameObject.SetActive(true);
-                responseButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = scams[currentScam].responses[i];
+                responseButtons_Security[i].gameObject.SetActive(true);
+                var textComponent = responseButtons_Security[i].GetComponentInChildren<TextMeshProUGUI>();
+                if (textComponent != null) textComponent.text = scams[currentScam].responses[i];
             }
             else
             {
-                responseButtons[i].gameObject.SetActive(false);
+                responseButtons_Security[i].gameObject.SetActive(false);
             }
         }
     }
 
     void HandleScamResponse(int responseIndex)
     {
-        if (responseIndex == scams[currentScam].correctResponse)
+        if (securityResultText != null)
         {
-            securityResultText.text = "Правильно! " + scams[currentScam].explanation;
+            securityResultText.text = responseIndex == scams[currentScam].correctResponse
+                ? "Правильно! " + scams[currentScam].explanation
+                : "Опасность! " + scams[currentScam].explanation;
         }
-        else
-        {
-            securityResultText.text = "Опасность! " + scams[currentScam].explanation;
-        }
-
         currentScam++;
-        StartCoroutine(NextScamAfterDelay(2f));
+        StartCoroutine(NextScamAfterDelay(3.5f));
     }
 
     IEnumerator NextScamAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        securityResultText.text = "";
+        if (securityResultText != null) securityResultText.text = "";
         ShowScamScenario();
     }
     #endregion
-}
 
-[System.Serializable]
-public class Question
-{
-    public string question;
-    public string[] answers;
-    public int[] correctAnswers;
-
-    public Question(string q, string[] a, int[] ca)
+    #region Вспомогательные методы
+    // *** НОВЫЕ МЕТОДЫ ДЛЯ УСТАНОВКИ РАЗМЕРА ШРИФТА ***
+    private void SetAllButtonFontSizes(float size)
     {
-        question = q;
-        answers = a;
-        correctAnswers = ca;
+        // Тексты на кнопках ответов в тесте
+        foreach (var text in answerTexts)
+        {
+            if (text != null)
+            {
+                text.fontSize = size;
+            }
+        }
+
+        // Кнопки навигации
+        SetButtonFontSize(startTheoryButton, size);
+        SetButtonFontSize(startTestButton, size);
+        SetButtonFontSize(startCreditGameButton, size);
+        SetButtonFontSize(startSecurityGameButton, size);
+        SetButtonFontSize(backToMenuButton, size);
+        SetButtonFontSize(backFromTestButton, size);
+
+        // Кнопки в теоретической части
+        SetButtonFontSize(nextTheoryButton, size);
+        SetButtonFontSize(prevTheoryButton, size);
+        SetButtonFontSize(closeTheoryButton, size);
+
+        // Кнопка подтверждения в тесте
+        SetButtonFontSize(confirmButton, size);
+
+        // Кнопки в мини-игре с кредитом
+        SetButtonArrayFontSize(termButtons, size);
+        SetButtonArrayFontSize(earlyRepaymentButtons, size);
+        SetButtonArrayFontSize(refinanceButtons, size);
+
+        // Кнопки в игре про фин. безопасность
+        SetButtonArrayFontSize(responseButtons_Security, size);
     }
-}
 
-[System.Serializable]
-public class ScamScenario
-{
-    public string message;
-    public string[] responses;
-    public int correctResponse;
-    public string explanation;
-
-    public ScamScenario(string msg, string[] res, int correct, string expl)
+    private void SetButtonFontSize(Button button, float size)
     {
-        message = msg;
-        responses = res;
-        correctResponse = correct;
-        explanation = expl;
+        if (button != null)
+        {
+            TextMeshProUGUI textComponent = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (textComponent != null)
+            {
+                textComponent.fontSize = size;
+            }
+        }
     }
+
+    private void SetButtonArrayFontSize(Button[] buttonArray, float size)
+    {
+        if (buttonArray == null) return;
+        foreach (var button in buttonArray)
+        {
+            SetButtonFontSize(button, size);
+        }
+    }
+    #endregion
 }
