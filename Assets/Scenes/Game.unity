@@ -563,8 +563,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 335, y: 171.5}
-  m_SizeDelta: {x: 420, y: 170}
+  m_AnchoredPosition: {x: 569.2, y: 542.3}
+  m_SizeDelta: {x: 840, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &67623902
 MonoBehaviour:
@@ -2407,7 +2407,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -2868,6 +2868,7 @@ RectTransform:
   - {fileID: 755588782}
   - {fileID: 1322685479}
   - {fileID: 356592967}
+  - {fileID: 1732015506}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4388,7 +4389,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &356592967
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4407,7 +4408,6 @@ RectTransform:
   - {fileID: 1746169504}
   - {fileID: 474659326}
   - {fileID: 1944221084}
-  - {fileID: 1732015506}
   - {fileID: 1033552575}
   - {fileID: 408227712}
   m_Father: {fileID: 265525403}
@@ -6251,8 +6251,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 9.100006, y: -395.25}
-  m_SizeDelta: {x: 1034.4, y: 790.5}
+  m_AnchoredPosition: {x: 9.100006, y: -205.3}
+  m_SizeDelta: {x: 1034.4, y: 410.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &507561612
 CanvasRenderer:
@@ -6316,8 +6316,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -8860,8 +8860,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -315.8, y: 171.5}
-  m_SizeDelta: {x: 420, y: 170}
+  m_AnchoredPosition: {x: -600.8, y: 275}
+  m_SizeDelta: {x: 840, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &695523621
 MonoBehaviour:
@@ -22316,7 +22316,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1732015506
 RectTransform:
   m_ObjectHideFlags: 0
@@ -22334,7 +22334,7 @@ RectTransform:
   - {fileID: 695523620}
   - {fileID: 237466024}
   - {fileID: 507561611}
-  m_Father: {fileID: 356592967}
+  m_Father: {fileID: 265525403}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -26058,7 +26058,9 @@ MonoBehaviour:
   refinanceButtons: []
   securityGamePanel: {fileID: 1732015505}
   scamMessageText: {fileID: 237466026}
-  responseButtons_Security: []
+  responseButtons_Security:
+  - {fileID: 67623902}
+  - {fileID: 695523621}
   securityResultText: {fileID: 507561613}
   startTheoryButton: {fileID: 986897087}
   startTestButton: {fileID: 772666695}
