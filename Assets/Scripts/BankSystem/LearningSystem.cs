@@ -93,29 +93,37 @@ public class FinancialLiteracyGame : MonoBehaviour
         )
     };
 
-    [Header("Мини-игра с кредитом: Общие элементы")]
+    [Header("Мини-игра с кредитом")]
     public GameObject creditGamePanel;
+    public Button startCreditGameButton;
+    public Button backFromCreditGameButton;
     public Slider amountSlider;
     public TextMeshProUGUI amountText;
-    public TextMeshProUGUI resultTextCredit;
+    public TextMeshProUGUI instructionText;
+    public Button[] choiceButtons;
     public TextMeshProUGUI finalResultText;
-
-    [Header("Мини-игра с кредитом: Группы этапов")]
-    public GameObject termSelectionGroup;
-    public GameObject earlyRepaymentGroup;
-    public GameObject refinanceGroup;
-
-    [Header("Мини-игра с кредитом: Кнопки")]
-    public Button[] termButtons;
-    public Button[] earlyRepaymentButtons;
-    public Button[] refinanceButtons;
 
     private float creditAmount;
     private int creditTerm;
     private float interestRate;
     private float initialOverpayment;
     private float finalOverpayment;
-    private bool hasChosenTerm = false;
+    private int currentStep = 0;
+
+    // Данные для мини-игры с кредитом
+    private string[] creditInstructions = {
+        "Выберите сумму кредита с помощью ползунка",
+        "Выберите срок кредита:",
+        "У вас появились \"свободные\" деньги. Погасить часть кредита досрочно?",
+        "Появился вариант кредита с более низким процентом. Провести рефинансирование?"
+    };
+
+    private string[][] creditChoices = {
+        new string[] {}, // Для первого шага нет кнопок
+        new string[] { "1 год (15%)", "3 года (12%)", "5 лет (10%)" },
+        new string[] { "Да", "Нет", "Я не знаю" },
+        new string[] { "Да", "Нет", "Что такое рефинансирование?" }
+    };
 
     [Header("Финансовая безопасность")]
     public GameObject securityGamePanel;
@@ -177,14 +185,21 @@ public class FinancialLiteracyGame : MonoBehaviour
     [Header("Навигация")]
     public Button startTheoryButton;
     public Button startTestButton;
-    public Button startCreditGameButton;
     public Button startSecurityGameButton;
     public Button backToMenuButton;
 
     void Start()
     {
         // Установка размера шрифта для всех кнопок
-        SetAllButtonFontSizes(55f);
+        SetAllButtonFontSizes(65f); // Увеличено до 65
+
+        // Настройка слайдера кредита до 300 000
+        if (amountSlider != null)
+        {
+            amountSlider.minValue = 10000;
+            amountSlider.maxValue = 300000;
+            amountSlider.value = 100000;
+        }
 
         // === Настройка обработчиков кнопок ===
         if (nextTheoryButton != null) nextTheoryButton.onClick.AddListener(NextTheoryPage);
@@ -193,10 +208,13 @@ public class FinancialLiteracyGame : MonoBehaviour
 
         if (startTheoryButton != null) startTheoryButton.onClick.AddListener(() => ShowPanel(theoryPanel));
         if (startTestButton != null) startTestButton.onClick.AddListener(() => { ShowPanel(testPanel); InitializeTest(); });
-        if (startCreditGameButton != null) startCreditGameButton.onClick.AddListener(() => { ShowPanel(creditGamePanel); InitializeCreditGame(); });
+        if (startCreditGameButton != null) startCreditGameButton.onClick.AddListener(StartCreditGame);
         if (startSecurityGameButton != null) startSecurityGameButton.onClick.AddListener(() => { ShowPanel(securityGamePanel); InitializeSecurityGame(); });
         if (backToMenuButton != null) backToMenuButton.onClick.AddListener(() => ShowPanel(teachingPanel));
         if (backFromTestButton != null) backFromTestButton.onClick.AddListener(() => ShowPanel(teachingPanel));
+        if (backFromCreditGameButton != null) backFromCreditGameButton.onClick.AddListener(() => ShowPanel(teachingPanel));
+
+        if (amountSlider != null) amountSlider.onValueChanged.AddListener(UpdateAmountText);
 
         for (int i = 0; i < answerButtons.Length; i++)
         {
@@ -205,21 +223,10 @@ public class FinancialLiteracyGame : MonoBehaviour
         }
         if (confirmButton != null) confirmButton.onClick.AddListener(ConfirmAnswer);
 
-        if (amountSlider != null) amountSlider.onValueChanged.AddListener(UpdateAmountText);
-        for (int i = 0; i < termButtons.Length; i++)
+        for (int i = 0; i < choiceButtons.Length; i++)
         {
             int index = i;
-            if (termButtons[i] != null) termButtons[i].onClick.AddListener(() => SelectTerm(index));
-        }
-        for (int i = 0; i < earlyRepaymentButtons.Length; i++)
-        {
-            int index = i;
-            if (earlyRepaymentButtons[i] != null) earlyRepaymentButtons[i].onClick.AddListener(() => HandleEarlyRepayment(index));
-        }
-        for (int i = 0; i < refinanceButtons.Length; i++)
-        {
-            int index = i;
-            if (refinanceButtons[i] != null) refinanceButtons[i].onClick.AddListener(() => HandleRefinance(index));
+            if (choiceButtons[i] != null) choiceButtons[i].onClick.AddListener(() => HandleCreditChoice(index));
         }
 
         for (int i = 0; i < responseButtons_Security.Length; i++)
@@ -304,12 +311,21 @@ public class FinancialLiteracyGame : MonoBehaviour
                 answerButtons[i].gameObject.SetActive(hasAnswer);
                 answerButtons[i].interactable = true;
                 answerButtons[i].image.color = Color.white;
+
+                // Устанавливаем текст на кнопке
+                TextMeshProUGUI buttonText = answerButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+                if (buttonText != null && hasAnswer)
+                {
+                    buttonText.text = questions[currentQuestion].answers[i];
+                    buttonText.fontSize = 65; // Увеличено до 65
+                }
+                else if (hasAnswer && i < answerTexts.Length && answerTexts[i] != null)
+                {
+                    answerTexts[i].text = questions[currentQuestion].answers[i];
+                    answerTexts[i].fontSize = 65; // Увеличено до 65
+                }
             }
 
-            if (hasAnswer && i < answerTexts.Length && answerTexts[i] != null)
-            {
-                answerTexts[i].text = questions[currentQuestion].answers[i];
-            }
             if (i < selectedAnswers.Length)
             {
                 selectedAnswers[i] = false;
@@ -402,72 +418,157 @@ public class FinancialLiteracyGame : MonoBehaviour
         if (resultText != null)
         {
             resultText.text = $"Тест завершен!\nВаш результат: {score} из {questions.Length}";
-        }
-        else
-        {
-            Debug.LogError("ОШИБКА: UI элемент 'resultText' не назначен в инспекторе!");
+            resultText.fontSize = 65; // Увеличено до 65
         }
 
-        if (backFromTestButton != null)
-        {
-            backFromTestButton.gameObject.SetActive(true);
-        }
-        else
-        {
-            Debug.LogError("ОШИБКА: Кнопка 'backFromTestButton' не назначена в инспекторе!");
-        }
+        if (backFromTestButton != null) backFromTestButton.gameObject.SetActive(true);
     }
     #endregion
 
     #region Мини-игра с кредитом
+    void StartCreditGame()
+    {
+        ShowPanel(creditGamePanel);
+        currentStep = 0;
+        InitializeCreditGame();
+    }
+
     void InitializeCreditGame()
     {
         if (amountSlider != null)
         {
-            amountSlider.value = amountSlider.minValue;
+            amountSlider.minValue = 10000;
+            amountSlider.maxValue = 300000;
+            amountSlider.value = 100000;
             UpdateAmountText(amountSlider.value);
             amountSlider.interactable = true;
         }
-        hasChosenTerm = false;
-        if (resultTextCredit != null) resultTextCredit.text = "Выберите сумму и срок кредита";
-        if (finalResultText != null) finalResultText.gameObject.SetActive(false);
-        if (backFromTestButton != null) backFromTestButton.gameObject.SetActive(true);
 
-        if (termSelectionGroup != null) termSelectionGroup.SetActive(true);
-        if (earlyRepaymentGroup != null) earlyRepaymentGroup.SetActive(false);
-        if (refinanceGroup != null) refinanceGroup.SetActive(false);
+        if (finalResultText != null) finalResultText.gameObject.SetActive(false);
+
+        // Скрываем все кнопки выбора
+        foreach (var button in choiceButtons)
+        {
+            if (button != null) button.gameObject.SetActive(false);
+        }
+
+        // Настройка первого шага
+        UpdateCreditGameUI();
+        currentStep = 1;
+    }
+
+    void UpdateCreditGameUI()
+    {
+        if (currentStep < 0 || currentStep >= creditInstructions.Length) return;
+
+        if (instructionText != null) instructionText.text = creditInstructions[currentStep];
+
+        // Активируем кнопки только если они есть для текущего шага
+        if (currentStep < creditChoices.Length)
+        {
+            for (int i = 0; i < choiceButtons.Length; i++)
+            {
+                if (choiceButtons[i] == null) continue;
+
+                bool shouldShow = i < creditChoices[currentStep].Length;
+                choiceButtons[i].gameObject.SetActive(shouldShow);
+
+                if (shouldShow && i < creditChoices[currentStep].Length)
+                {
+                    TextMeshProUGUI buttonText = choiceButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+                    if (buttonText != null)
+                    {
+                        buttonText.text = creditChoices[currentStep][i];
+                    }
+                }
+            }
+        }
     }
 
     void UpdateAmountText(float value)
     {
         creditAmount = value;
-        if (amountText != null) amountText.text = $"Сумма кредита: {creditAmount:F0} руб.";
+        if (amountText != null)
+        {
+            amountText.text = $"Сумма кредита: {creditAmount:F0} руб.";
+            amountText.fontSize = 55;
+        }
+
+        // После выбора суммы переходим к выбору срока
+        if (currentStep == 1)
+        {
+            currentStep = 2;
+            UpdateCreditGameUI();
+        }
     }
 
-    void SelectTerm(int termIndex)
+    void HandleCreditChoice(int choiceIndex)
     {
-        if (hasChosenTerm) return;
-
-        switch (termIndex)
+        switch (currentStep)
         {
-            case 0: creditTerm = 1; interestRate = 0.15f; resultTextCredit.text = "Отличный выбор!"; break;
-            case 1: creditTerm = 3; interestRate = 0.12f; resultTextCredit.text = "Первый вариант более выгоден."; break;
-            case 2: creditTerm = 5; interestRate = 0.10f; resultTextCredit.text = "Первый вариант более выгоден."; break;
+            case 2: // Выбор срока кредита
+                HandleTermSelection(choiceIndex);
+                break;
+            case 3: // Досрочное погашение
+                HandleEarlyRepayment(choiceIndex);
+                break;
+            case 4: // Рефинансирование
+                HandleRefinance(choiceIndex);
+                break;
         }
-        hasChosenTerm = true;
-        if (amountSlider != null) amountSlider.interactable = false;
+    }
+
+    void HandleTermSelection(int choiceIndex)
+    {
+        // Скрываем все кнопки
+        foreach (var button in choiceButtons)
+        {
+            if (button != null) button.gameObject.SetActive(false);
+        }
+
+        // Устанавливаем параметры кредита в зависимости от выбора
+        switch (choiceIndex)
+        {
+            case 0:
+                creditTerm = 1;
+                interestRate = 0.15f;
+                if (instructionText != null) instructionText.text = "Отличный выбор!";
+                break;
+            case 1:
+                creditTerm = 3;
+                interestRate = 0.12f;
+                if (instructionText != null) instructionText.text = "Первый вариант более выгоден";
+                break;
+            case 2:
+                creditTerm = 5;
+                interestRate = 0.10f;
+                if (instructionText != null) instructionText.text = "Первый вариант более выгоден";
+                break;
+        }
 
         initialOverpayment = creditAmount * interestRate * creditTerm;
         finalOverpayment = initialOverpayment;
-        resultTextCredit.text += $"\nПереплата составит: {initialOverpayment:F0} руб.";
+        if (instructionText != null) instructionText.text += $"\nПереплата составит: {initialOverpayment:F0} руб.";
 
-        StartCoroutine(ShowNextGroup(termSelectionGroup, earlyRepaymentGroup, 2.5f));
+        currentStep = 3;
+        StartCoroutine(ShowNextStepAfterDelay(2.5f));
+    }
+
+    IEnumerator ShowNextStepAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        UpdateCreditGameUI();
     }
 
     void HandleEarlyRepayment(int choiceIndex)
     {
+        // Скрываем все кнопки
+        foreach (var button in choiceButtons)
+        {
+            if (button != null) button.gameObject.SetActive(false);
+        }
+
         string feedback = "";
-        bool advanceToNextStep = true;
         switch (choiceIndex)
         {
             case 0:
@@ -478,57 +579,47 @@ public class FinancialLiteracyGame : MonoBehaviour
                 feedback = "Переплата не сократилась";
                 break;
             case 2:
-                feedback = "Подумайте еще раз.";
-                advanceToNextStep = false;
-                break;
+                feedback = "Подумайте еще раз";
+                // Повторяем тот же шаг
+                StartCoroutine(ShowNextStepAfterDelay(1.5f));
+                return;
         }
-        resultTextCredit.text = feedback;
-        if (advanceToNextStep)
-        {
-            StartCoroutine(ShowNextGroup(earlyRepaymentGroup, refinanceGroup, 2.5f));
-        }
+
+        if (instructionText != null) instructionText.text = feedback;
+
+        currentStep = 4;
+        StartCoroutine(ShowNextStepAfterDelay(2.5f));
     }
 
     void HandleRefinance(int choiceIndex)
     {
+        // Скрываем все кнопки
+        foreach (var button in choiceButtons)
+        {
+            if (button != null) button.gameObject.SetActive(false);
+        }
+
         string feedback = "";
-        bool finishGame = true;
-        float refinanceReduction = finalOverpayment * 0.1f;
         switch (choiceIndex)
         {
             case 0:
-                finalOverpayment -= refinanceReduction;
+                finalOverpayment *= 0.9f;
                 feedback = "Переплата сократилась на 10%";
                 break;
             case 1:
                 feedback = "Переплата не сократилась";
                 break;
             case 2:
-                feedback = "Рекомендуем прочесть теоретический материал.";
-                finishGame = false;
-                break;
+                feedback = "Рекомендуем прочесть теоретический материал";
+                // Повторяем тот же шаг
+                StartCoroutine(ShowNextStepAfterDelay(1.5f));
+                return;
         }
-        resultTextCredit.text = feedback;
-        if (finishGame)
-        {
-            if (refinanceGroup != null) refinanceGroup.SetActive(false);
-            ShowFinalResult();
-            StartCoroutine(ReturnToMenuAfterDelay(4f));
-        }
-    }
 
-    IEnumerator ReturnToMenuAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        ShowPanel(teachingPanel);
-    }
+        if (instructionText != null) instructionText.text = feedback;
 
-    IEnumerator ShowNextGroup(GameObject groupToHide, GameObject groupToShow, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (groupToHide != null) groupToHide.SetActive(false);
-        if (groupToShow != null) groupToShow.SetActive(true);
-        if (resultTextCredit != null) resultTextCredit.text = "Выберите действие:";
+        ShowFinalResult();
+        StartCoroutine(ReturnToMenuAfterDelay(4f));
     }
 
     void ShowFinalResult()
@@ -538,7 +629,13 @@ public class FinancialLiteracyGame : MonoBehaviour
             finalResultText.gameObject.SetActive(true);
             finalResultText.text = $"Итоговая переплата по кредиту составила: {finalOverpayment:F0} руб.";
         }
-        if (resultTextCredit != null) resultTextCredit.text = "";
+        if (instructionText != null) instructionText.text = "";
+    }
+
+    IEnumerator ReturnToMenuAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        ShowPanel(teachingPanel);
     }
     #endregion
 
@@ -617,6 +714,7 @@ public class FinancialLiteracyGame : MonoBehaviour
         SetButtonFontSize(startSecurityGameButton, size);
         SetButtonFontSize(backToMenuButton, size);
         SetButtonFontSize(backFromTestButton, size);
+        SetButtonFontSize(backFromCreditGameButton, size);
 
         // Кнопки в теоретической части
         SetButtonFontSize(nextTheoryButton, size);
@@ -627,12 +725,16 @@ public class FinancialLiteracyGame : MonoBehaviour
         SetButtonFontSize(confirmButton, size);
 
         // Кнопки в мини-игре с кредитом
-        SetButtonArrayFontSize(termButtons, size);
-        SetButtonArrayFontSize(earlyRepaymentButtons, size);
-        SetButtonArrayFontSize(refinanceButtons, size);
+        foreach (var button in choiceButtons)
+        {
+            SetButtonFontSize(button, size);
+        }
 
         // Кнопки в игре про фин. безопасность
-        SetButtonArrayFontSize(responseButtons_Security, size);
+        foreach (var button in responseButtons_Security)
+        {
+            SetButtonFontSize(button, size);
+        }
     }
 
     private void SetButtonFontSize(Button button, float size)
@@ -644,15 +746,6 @@ public class FinancialLiteracyGame : MonoBehaviour
             {
                 textComponent.fontSize = size;
             }
-        }
-    }
-
-    private void SetButtonArrayFontSize(Button[] buttonArray, float size)
-    {
-        if (buttonArray == null) return;
-        foreach (var button in buttonArray)
-        {
-            SetButtonFontSize(button, size);
         }
     }
     #endregion
