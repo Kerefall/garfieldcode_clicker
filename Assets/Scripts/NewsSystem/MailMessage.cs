@@ -24,6 +24,8 @@ public class MailMessage : MonoBehaviour
         text.text = buttonText;
         button.onClick.AddListener(action);
 
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(buttonsParent.GetComponent<RectTransform>());
         return button;
     }
 
