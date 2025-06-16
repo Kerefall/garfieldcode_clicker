@@ -3,56 +3,61 @@ using UnityEngine.UI;
 
 public class MusicManager : MonoBehaviour
 {
+    [Header("References")]
     public Toggle toggleMusic;
     public Slider sliderVolumeMusic;
-    public AudioSource audio;
-    public float volume;
-    
-    void Start()
+    public AudioSource audioSource; 
+
+    private float volume;
+
+    private void Start()
     {
+        // Загружаем сохранённые настройки
         Load();
-        ValueMusic();
 
-        toggleMusic = GameObject.FindGameObjectWithTag("Toggle").GetComponent<Toggle>();
-        sliderVolumeMusic = GameObject.FindGameObjectWithTag("Slider").GetComponent<Slider>();
-    }
-
-
-    public void SliderMusic()
-    {
-        volume = sliderVolumeMusic.value;
-        Save();
-        ValueMusic();
-    }
-
-    public void ToggleMusic()
-    {
-        if (toggleMusic.isOn == true)
-        {
-            volume = 1;
-        } 
-        else 
-        {
-            volume = 0;
-        }
-        Save();
-        ValueMusic();
-    }
-
-    private void ValueMusic()
-    {
-        audio.volume = volume;
+        // Настраиваем начальные значения UI
         sliderVolumeMusic.value = volume;
-        if (volume == 0){toggleMusic.isOn = false;} else {toggleMusic.isOn = true;}
+        toggleMusic.isOn = volume > 0;
+
+        // Подписываемся на изменения UI
+        sliderVolumeMusic.onValueChanged.AddListener(OnVolumeChanged);
+        toggleMusic.onValueChanged.AddListener(OnToggleChanged);
+
+        // Применяем настройки звука
+        UpdateAudioVolume();
+    }
+
+    private void OnVolumeChanged(float newVolume)
+    {
+        volume = newVolume;
+        toggleMusic.isOn = volume > 0; // Обновляем Toggle в зависимости от громкости
+        Save();
+        UpdateAudioVolume();
+    }
+
+    private void OnToggleChanged(bool isOn)
+    {
+        volume = isOn ? sliderVolumeMusic.value : 0; // Если Toggle выключен, звук отключается
+        Save();
+        UpdateAudioVolume();
+    }
+
+    private void UpdateAudioVolume()
+    {
+        if (audioSource != null)
+        {
+            audioSource.volume = volume;
+        }
     }
 
     private void Save()
     {
         PlayerPrefs.SetFloat("volume", volume);
+        PlayerPrefs.Save(); // Важно сохранять изменения!
     }
 
     private void Load()
     {
-        volume = PlayerPrefs.GetFloat("volume", volume);
+        volume = PlayerPrefs.GetFloat("volume", 0.5f); // Значение по умолчанию — 50%
     }
 }
