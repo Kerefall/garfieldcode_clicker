@@ -20790,6 +20790,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1255552546}
   - component: {fileID: 1255552547}
+  - component: {fileID: 1255552548}
   m_Layer: 5
   m_Name: MusicManager
   m_TagString: Untagged
@@ -20831,6 +20832,21 @@ MonoBehaviour:
   toggleMusic: {fileID: 927490792}
   sliderVolumeMusic: {fileID: 1747459086}
   audioSource: {fileID: 265525405}
+--- !u!114 &1255552548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255552545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cceebe9af66b31f4ba7a356d0019a3b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toggleMusic: {fileID: 972489418}
+  sliderVolumeMusic: {fileID: 769444291}
+  audioSource: {fileID: 1353045537}
 --- !u!1 &1271875303
 GameObject:
   m_ObjectHideFlags: 0
@@ -23981,7 +23997,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -135.1, y: 2043}
+  m_AnchoredPosition: {x: -135.1, y: 2042.9999}
   m_SizeDelta: {x: 122.9, y: 23.9}
   m_Pivot: {x: 0.50000036, y: 0.4999991}
 --- !u!1 &1516206192
