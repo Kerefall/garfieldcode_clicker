@@ -16,6 +16,11 @@ public class FinancialLiteracyGame : MonoBehaviour
     [Header("Панель меню")]
     public GameObject teachingPanel;
 
+    [Header("Звуковые эффекты")]
+    public AudioSource audioSource;
+    public AudioClip correctAnswerSound;
+    public AudioClip wrongAnswerSound;
+
     private string[] theoryPages = {
         "Инфляция – устойчивое повышение общего уровня цен на товары и услуги. Простыми словами – со временем за одинаковое количество денег можно будет купить всё меньше товаров и услуг.",
         "Инфляция влечёт за собой очень много последствий, но основные, которые имеют для тебя значение:\r\n1)\tДеньги на вашем счёте или в копилке теряют «ценность», цены растут\r\n2)\tДля снижения инфляции государство повышает ключевую ставку, о которой расскажем в другом разделе",
@@ -26,7 +31,7 @@ public class FinancialLiteracyGame : MonoBehaviour
         "Как это работает? Банк выдаёт ваши деньги в кредиты под более высокий процент и разницу оставляет себе.\r\nОбычно, чем меньше срок, на которой открывается вклад, тем выше процент. Это из-за того, что банку проще предсказать поведение экономики в стране на короткий срок, чем на более длинный.",
         "Иногда случается так, что деньги нужны здесь и сейчас. В этом вам поможет такой финансовый инструмент, как кредит.\r\nКредит – когда вам дают деньги в долг, но с условием вернуть больше, чем взяли. Разница между «взял» и «вернул» — это процент, под который выдаётся кредит.",
         "Из чего процент складывается?\r\n1.\tВ первую очередь процент зависит от ключевой ставки. Чем она выше, тем дороже кредиты\r\n",
-        "2. Риски банка. Да, выдавать кредиты для банка риск потерять деньги, поэтому если у вас плохая кредитная история или маленькая зарплата, то банк поднимет процент дабы перестраховаться\r\n",
+        "2. Риски банка. Да, выдавать кредиты для банка риск потерять деньги, поэтому если у вас плохая крединая история или маленькая зарплата, то банк поднимет процент дабы перестраховаться\r\n",
         "3.\tПрибыль банка. Банк тоже хочет заработать и поэтому «накидывает» пару процентов",
         "Что такое переплата по кредиту?\r\nПереплата = Сумма кредита * Годовой процент * Срок в годах \r\nТо есть это то, сколько вы платите за возможность получить деньги здесь и сейчас.\r\nДля того, чтобы сократить переплату нужно уменьшать срок кредита и по возможности погашать досрочно.",
         "В досрочном погашении кредита может помочь рефинансирование. Если появляется возможность открыть кредит под более низкий процент, то может быть выгодным открыть новый и погасить им старый. Но нужно учитывать, что за рефинансирование банк может взымать комиссию.",
@@ -389,11 +394,13 @@ public class FinancialLiteracyGame : MonoBehaviour
         if (allCorrect)
         {
             if (resultText != null) resultText.text = "Правильно!";
+            PlaySound(correctAnswerSound);
             score++;
         }
         else
         {
             if (resultText != null) resultText.text = "Неправильно!";
+            PlaySound(wrongAnswerSound);
         }
 
         currentQuestion++;
@@ -595,9 +602,11 @@ public class FinancialLiteracyGame : MonoBehaviour
             case 0:
                 finalOverpayment = initialOverpayment * 0.7f;
                 feedback = "Хороший выбор, переплата сократилась на 30%";
+                PlaySound(correctAnswerSound);
                 break;
             case 1:
                 feedback = "Переплата не сократилась";
+                PlaySound(wrongAnswerSound);
                 break;
             case 2:
                 feedback = "Подумайте еще раз";
@@ -624,9 +633,11 @@ public class FinancialLiteracyGame : MonoBehaviour
             case 0:
                 finalOverpayment *= 0.9f;
                 feedback = "Переплата сократилась на 10%";
+                PlaySound(correctAnswerSound);
                 break;
             case 1:
                 feedback = "Переплата не сократилась";
+                PlaySound(wrongAnswerSound);
                 break;
             case 2:
                 feedback = "Рекомендуем прочесть теоретический материал";
@@ -733,6 +744,16 @@ public class FinancialLiteracyGame : MonoBehaviour
                 ? "Правильно! " + scams[currentScam].explanation
                 : "Опасность! " + scams[currentScam].explanation;
         }
+
+        if (responseIndex == scams[currentScam].correctResponse)
+        {
+            PlaySound(correctAnswerSound);
+        }
+        else
+        {
+            PlaySound(wrongAnswerSound);
+        }
+
         currentScam++;
         StartCoroutine(NextScamAfterDelay(3.5f));
     }
@@ -792,6 +813,14 @@ public class FinancialLiteracyGame : MonoBehaviour
             {
                 textComponent.fontSize = size;
             }
+        }
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
     #endregion
