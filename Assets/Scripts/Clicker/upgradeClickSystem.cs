@@ -22,6 +22,7 @@ public class ClickerUpgradeSystem : MonoBehaviour
     [SerializeField] private Upgrade[] upgrades;
     [SerializeField] private TextMeshProUGUI clickGainText;
     [SerializeField] private float uiUpdateInterval = 0.2f;
+    [SerializeField] private int maxPurchases = 15; // Максимальное количество покупок
 
     private float uiUpdateTimer;
 
@@ -72,7 +73,6 @@ public class ClickerUpgradeSystem : MonoBehaviour
         CalculateTotalClickGain();
     }
 
-    // Остальные методы остаются без изменений...
     private int CalculateUpgradeCost(Upgrade upgrade)
     {
         return upgrade.baseCost * (upgrade.currentLevel + 1);
@@ -84,6 +84,14 @@ public class ClickerUpgradeSystem : MonoBehaviour
         if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length || upgrades[upgradeIndex] == null) return;
 
         var upgrade = upgrades[upgradeIndex];
+
+        // Проверяем максимальное количество покупок
+        if (upgrade.currentLevel >= maxPurchases)
+        {
+            Debug.Log("Достигнуто максимальное количество улучшений!");
+            return;
+        }
+
         if (Clicker.Instance.Money >= upgrade.currentCost)
         {
             Clicker.Instance.Money -= upgrade.currentCost;
@@ -132,11 +140,14 @@ public class ClickerUpgradeSystem : MonoBehaviour
     {
         if (upgrades == null || Clicker.Instance == null) return;
 
-        foreach (var upgrade in upgrades)
+        for (int i = 0; i < upgrades.Length; i++)
         {
+            var upgrade = upgrades[i];
             if (upgrade != null && upgrade.button != null)
             {
-                upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
+                // Кнопка активна, если хватает денег и не достигнут максимум покупок
+                upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost &&
+                                           upgrade.currentLevel < maxPurchases;
             }
         }
     }
@@ -154,17 +165,27 @@ public class ClickerUpgradeSystem : MonoBehaviour
 
         var upgrade = upgrades[index];
 
-        // Всегда обновляем текст цены
+        // Обновляем текст цены
         if (upgrade.costText != null)
-            upgrade.costText.text = $"Цена: {upgrade.currentCost} руб.";
+        {
+            if (upgrade.currentLevel >= maxPurchases)
+            {
+                upgrade.costText.text = "Максимум";
+            }
+            else
+            {
+                upgrade.costText.text = $"Цена: {upgrade.currentCost} руб.";
+            }
+        }
 
-        // Всегда обновляем текст уровня
+        // Обновляем текст уровня
         if (upgrade.levelText != null)
-            upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
+            upgrade.levelText.text = $"Куплено {upgrade.currentLevel}/{maxPurchases}";
 
         // Обновляем состояние кнопки
         if (upgrade.button != null)
-            upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
+            upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost &&
+                                       upgrade.currentLevel < maxPurchases;
     }
 
     [ContextMenu("Сбросить все улучшения")]

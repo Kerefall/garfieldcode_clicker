@@ -18,10 +18,12 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         [HideInInspector] public int currentCost;
     }
 
+    private const int UPGRADE_LEVEL_LIMIT = 15; // 👈 Ограничение на апгрейды
+
     [Header("Настройки")]
     [SerializeField] private AutoClickerUpgrade[] upgrades;
     [SerializeField] private float updateInterval = 1.0f;
-    [SerializeField] private float uiUpdateInterval = 0.2f; // Интервал обновления UI
+    [SerializeField] private float uiUpdateInterval = 0.2f;
 
     private float timer = 0f;
     private float uiUpdateTimer = 0f;
@@ -72,8 +74,6 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
             upgrades[i].currentLevel = PlayerPrefs.GetInt($"AutoClicker_{i}_Level", 0);
             upgrades[i].currentCost = CalculateUpgradeCost(upgrades[i]);
-
-            // Обновляем UI сразу при инициализации
             UpdateSingleUpgradeUI(i);
 
             if (upgrades[i].button != null)
@@ -98,6 +98,9 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         if (upgradeIndex < 0 || upgradeIndex >= upgrades.Length || upgrades[upgradeIndex] == null) return;
 
         var upgrade = upgrades[upgradeIndex];
+        // 👇 Добавлено ограничение на покупку
+        if (upgrade.currentLevel >= UPGRADE_LEVEL_LIMIT) return;
+
         if (Clicker.Instance.Money >= upgrade.currentCost)
         {
             Clicker.Instance.Money -= upgrade.currentCost;
@@ -165,7 +168,10 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
         {
             if (upgrade != null && upgrade.button != null)
             {
-                upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
+                // 👇 Кнопка неактивна, если достигнут лимит
+                upgrade.button.interactable =
+                    (Clicker.Instance.Money >= upgrade.currentCost)
+                    && (upgrade.currentLevel < UPGRADE_LEVEL_LIMIT);
             }
         }
     }
@@ -176,17 +182,21 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
 
         var upgrade = upgrades[index];
 
-        // Всегда обновляем текст цены
         if (upgrade.costText != null)
             upgrade.costText.text = $"Цена: {upgrade.currentCost} руб.";
 
-        // Всегда обновляем текст уровня
         if (upgrade.levelText != null)
-            upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
+        {
+            if (upgrade.currentLevel >= UPGRADE_LEVEL_LIMIT)
+                upgrade.levelText.text = $"Куплено {upgrade.currentLevel} (макс)";
+            else
+                upgrade.levelText.text = $"Куплено {upgrade.currentLevel}";
+        }
 
-        // Обновляем состояние кнопки
         if (upgrade.button != null)
-            upgrade.button.interactable = Clicker.Instance.Money >= upgrade.currentCost;
+            upgrade.button.interactable =
+                (Clicker.Instance.Money >= upgrade.currentCost)
+                && (upgrade.currentLevel < UPGRADE_LEVEL_LIMIT);
     }
 
     [ContextMenu("Сбросить все улучшения")]
@@ -201,8 +211,6 @@ public class AutoClickerUpgradeSystem : MonoBehaviour
                 upgrades[i].currentLevel = 0;
                 upgrades[i].currentCost = upgrades[i].baseCost;
                 PlayerPrefs.DeleteKey($"AutoClicker_{i}_Level");
-
-                // Обновляем UI каждого апгрейда после сброса
                 UpdateSingleUpgradeUI(i);
             }
         }
