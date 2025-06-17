@@ -3044,55 +3044,55 @@ MonoBehaviour:
   achievements:
   - id: FirstMoney
     icon: {fileID: -8120302050354792237, guid: ce5751f03a919fb4a916999ad1f77d8e, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 1687672420}
     descriptionPanel: {fileID: 130807400}
   - id: Gramotey
     icon: {fileID: -3254128918681574132, guid: 54e3343fac5518f4f9f78a9f1146b8b7, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 528450653}
     descriptionPanel: {fileID: 130807400}
   - id: Investor
     icon: {fileID: 1928854079672290856, guid: f3b17b4c6520a0d4c8dc5b53dfa31654, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 1185317172}
     descriptionPanel: {fileID: 130807400}
   - id: Discipline
     icon: {fileID: -1905684861663631648, guid: b43f034829abd0e4a92378e66c5ea2af, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 1113389774}
     descriptionPanel: {fileID: 130807400}
   - id: How to fast get money
     icon: {fileID: 9141551276572910829, guid: 55c42404a7cddec4c9359ea9ee7a31cc, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 1082618502}
     descriptionPanel: {fileID: 130807400}
   - id: ManageToReact
     icon: {fileID: 5049783485040867628, guid: 04f137577897fa04288d2b1dd313c83e, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 437505466}
     descriptionPanel: {fileID: 130807400}
   - id: GoodStudent
     icon: {fileID: -8416354257052922336, guid: 7d1c36d872206654d9ae4309d8433b6c, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 676675987}
     descriptionPanel: {fileID: 130807400}
   - id: DormRoom
     icon: {fileID: -8335689079571636726, guid: a08290b225071c447be2fabfffe00a38, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 1011691233}
     descriptionPanel: {fileID: 130807400}
   - id: Rich
     icon: {fileID: 4989187646252599278, guid: af88359d17594f847ae8dada83c5d725, type: 3}
-    lockedIcon: {fileID: -6304465360498341509, guid: a13ae5d8df4c40e49b1e341af323aef2, type: 3}
+    lockedIcon: {fileID: -4830278217956542665, guid: 16f0bc44ac1e55e4ba1cef5c7c7aa789, type: 3}
     isUnlocked: 0
     achievementButton: {fileID: 423806718}
     descriptionPanel: {fileID: 130807400}
