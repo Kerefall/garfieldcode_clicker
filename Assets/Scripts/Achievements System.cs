@@ -12,8 +12,10 @@ public class AchievementSystem : MonoBehaviour
     public class Achievement
     {
         public string id;
+        public string displayName;
+        public string description;
         public Sprite icon;
-        public Sprite lockedIcon; // Новая переменная для иконки заблокированного достижения
+        public Sprite lockedIcon;
         public bool isUnlocked;
         public Button achievementButton;
         public GameObject descriptionPanel;
@@ -29,6 +31,10 @@ public class AchievementSystem : MonoBehaviour
     [SerializeField] private GameObject notificationPrefab;
     [SerializeField] private Transform notificationParent;
     [SerializeField] private float notificationDuration = 3f;
+    [SerializeField] private float notificationSpacing = 100f;
+    [SerializeField] private AudioClip notificationSound;
+    [SerializeField] private Color unlockedColor = Color.white;
+    [SerializeField] private Color lockedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
     [Header("Navigation")]
     [SerializeField] private Button backButton;
@@ -38,6 +44,7 @@ public class AchievementSystem : MonoBehaviour
     private float checkTimer;
     private Queue<Achievement> notificationQueue = new Queue<Achievement>();
     private bool isShowingNotification;
+    private List<GameObject> activeNotifications = new List<GameObject>();
 
     private void Awake()
     {
@@ -85,7 +92,6 @@ public class AchievementSystem : MonoBehaviour
 
         bool shouldShow = !achievement.descriptionPanel.activeSelf;
 
-        // Сначала скрываем все другие панели
         foreach (var ach in achievements)
         {
             if (ach.descriptionPanel != null && ach.descriptionPanel != achievement.descriptionPanel)
@@ -94,7 +100,6 @@ public class AchievementSystem : MonoBehaviour
             }
         }
 
-        // Переключаем текущую панель
         achievement.descriptionPanel.SetActive(shouldShow);
     }
 
@@ -115,7 +120,6 @@ public class AchievementSystem : MonoBehaviour
                 var btnImage = achievement.achievementButton.GetComponent<Image>();
                 if (btnImage != null)
                 {
-                    // Используем разные спрайты в зависимости от статуса достижения
                     btnImage.sprite = achievement.isUnlocked ? achievement.icon : achievement.lockedIcon;
                 }
             }
@@ -222,10 +226,79 @@ public class AchievementSystem : MonoBehaviour
         if (notificationPrefab == null || notificationParent == null) return;
 
         GameObject notification = Instantiate(notificationPrefab, notificationParent);
-        Image icon = notification.GetComponentInChildren<Image>();
-        if (icon != null) icon.sprite = achievement.icon;
+        activeNotifications.Add(notification);
 
-        Destroy(notification, notificationDuration);
+        RectTransform rectTransform = notification.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = new Vector2(0, (activeNotifications.Count - 1) * notificationSpacing);
+        }
+
+        Image icon = notification.GetComponentInChildren<Image>();
+        TextMeshProUGUI[] texts = notification.GetComponentsInChildren<TextMeshProUGUI>();
+
+        if (icon != null)
+        {
+            icon.sprite = achievement.isUnlocked ? achievement.icon : achievement.lockedIcon;
+            icon.color = achievement.isUnlocked ? unlockedColor : lockedColor;
+        }
+
+        if (texts.Length > 0) texts[0].text = achievement.displayName ?? achievement.id;
+        if (texts.Length > 1) texts[1].text = achievement.isUnlocked ?
+            achievement.description ?? "Достижение разблокировано!" :
+            "Новое достижение доступно!";
+
+        if (notificationSound != null)
+        {
+            AudioSource.PlayClipAtPoint(notificationSound, Camera.main.transform.position);
+        }
+
+        StartCoroutine(AnimateNotification(notification, true));
+        StartCoroutine(DestroyNotificationAfterDelay(notification, notificationDuration));
+    }
+
+    private IEnumerator AnimateNotification(GameObject notification, bool show)
+    {
+        CanvasGroup canvasGroup = notification.GetComponent<CanvasGroup>();
+        if (canvasGroup == null) canvasGroup = notification.AddComponent<CanvasGroup>();
+
+        float targetAlpha = show ? 1f : 0f;
+        float startAlpha = show ? 0f : 1f;
+        float duration = 0.3f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        canvasGroup.alpha = targetAlpha;
+    }
+
+    private IEnumerator DestroyNotificationAfterDelay(GameObject notification, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        yield return StartCoroutine(AnimateNotification(notification, false));
+
+        activeNotifications.Remove(notification);
+        Destroy(notification);
+
+        UpdateNotificationsPositions();
+    }
+
+    private void UpdateNotificationsPositions()
+    {
+        for (int i = 0; i < activeNotifications.Count; i++)
+        {
+            RectTransform rt = activeNotifications[i].GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0, i * notificationSpacing);
+            }
+        }
     }
 
     public void ReturnToMainMenu()
