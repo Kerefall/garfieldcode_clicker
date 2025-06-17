@@ -13,14 +13,13 @@ public class AchievementSystem : MonoBehaviour
     {
         public string id;
         public Sprite icon;
+        public Sprite lockedIcon; // Новая переменная для иконки заблокированного достижения
         public bool isUnlocked;
         public Button achievementButton;
         public GameObject descriptionPanel;
     }
 
     [Header("Settings")]
-    [SerializeField] private Color unlockedColor = Color.yellow;
-    [SerializeField] private Color lockedColor = Color.gray;
     [SerializeField] private float checkInterval = 1f;
 
     [Header("Achievements")]
@@ -116,8 +115,8 @@ public class AchievementSystem : MonoBehaviour
                 var btnImage = achievement.achievementButton.GetComponent<Image>();
                 if (btnImage != null)
                 {
-                    btnImage.sprite = achievement.icon;
-                    btnImage.color = achievement.isUnlocked ? unlockedColor : lockedColor;
+                    // Используем разные спрайты в зависимости от статуса достижения
+                    btnImage.sprite = achievement.isUnlocked ? achievement.icon : achievement.lockedIcon;
                 }
             }
         }
