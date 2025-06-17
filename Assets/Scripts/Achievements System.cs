@@ -19,6 +19,8 @@ public class AchievementSystem : MonoBehaviour
         public bool isUnlocked;
         public Button achievementButton;
         public GameObject descriptionPanel;
+        public int requiredProgress = 5;
+        [HideInInspector] public int currentProgress;
     }
 
     [Header("Settings")]
@@ -31,14 +33,13 @@ public class AchievementSystem : MonoBehaviour
     [SerializeField] private GameObject notificationPrefab;
     [SerializeField] private Transform notificationParent;
     [SerializeField] private float notificationDuration = 3f;
-    [SerializeField] private float notificationSpacing = 100f;
+    [SerializeField] private float notificationSpacing = 120f;
     [SerializeField] private AudioClip notificationSound;
-    [SerializeField] private Color unlockedColor = Color.white;
-    [SerializeField] private Color lockedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
-    [Header("Navigation")]
-    [SerializeField] private Button backButton;
-    [SerializeField] private GameObject mainPanel;
+    [Header("UI Elements")]
+    [SerializeField] private Button backButton; // Кнопка "Назад"
+    [SerializeField] private GameObject mainPanel; // Главная панель
+    [SerializeField] private GameObject achievementsPanel; // Панель достижений
 
     private Dictionary<string, int> progressCounters = new Dictionary<string, int>();
     private float checkTimer;
@@ -60,11 +61,13 @@ public class AchievementSystem : MonoBehaviour
     {
         InitializeAchievements();
         LoadAchievements();
+        InitializeCounters();
         UpdateAchievementsUI();
-        StartCheckingProgress();
 
+        // Инициализация кнопки "Назад"
         if (backButton != null)
         {
+            backButton.onClick.RemoveAllListeners();
             backButton.onClick.AddListener(ReturnToMainMenu);
         }
     }
@@ -92,6 +95,7 @@ public class AchievementSystem : MonoBehaviour
 
         bool shouldShow = !achievement.descriptionPanel.activeSelf;
 
+        // Закрываем все другие панели
         foreach (var ach in achievements)
         {
             if (ach.descriptionPanel != null && ach.descriptionPanel != achievement.descriptionPanel)
@@ -103,11 +107,20 @@ public class AchievementSystem : MonoBehaviour
         achievement.descriptionPanel.SetActive(shouldShow);
     }
 
+    private void InitializeCounters()
+    {
+        progressCounters.Add("FraudPrevention", 0);
+        progressCounters.Add("EducationPayment", 0);
+        progressCounters.Add("DormPayment", 0);
+        checkTimer = checkInterval;
+    }
+
     private void LoadAchievements()
     {
         foreach (var achievement in achievements)
         {
             achievement.isUnlocked = PlayerPrefs.GetInt($"Achievement_{achievement.id}_Unlocked", 0) == 1;
+            achievement.currentProgress = PlayerPrefs.GetInt($"Achievement_{achievement.id}_Progress", 0);
         }
     }
 
@@ -126,14 +139,6 @@ public class AchievementSystem : MonoBehaviour
         }
     }
 
-    private void StartCheckingProgress()
-    {
-        progressCounters.Add("FraudPrevention", 0);
-        progressCounters.Add("EducationPayment", 0);
-        progressCounters.Add("DormPayment", 0);
-        checkTimer = checkInterval;
-    }
-
     private void Update()
     {
         checkTimer -= Time.deltaTime;
@@ -146,63 +151,63 @@ public class AchievementSystem : MonoBehaviour
 
     private void CheckAllAchievements()
     {
-        if (!IsAchievementUnlocked("FirstMoney") && Clicker.Instance.Money >= 100)
+        if (!IsAchievementUnlocked("FirstMoney") && Clicker.Instance != null && Clicker.Instance.Money >= 100)
         {
             UnlockAchievement("FirstMoney");
         }
 
-        if (!IsAchievementUnlocked("Rich") && Clicker.Instance.Money >= 100000)
+        if (!IsAchievementUnlocked("Rich") && Clicker.Instance != null && Clicker.Instance.Money >= 100000)
         {
             UnlockAchievement("Rich");
+        }
+
+        CheckProgressAchievement("FraudPrevention", "FraudPrevention");
+        CheckProgressAchievement("EducationPayment", "DiligentStudent");
+        CheckProgressAchievement("DormPayment", "DormLife");
+    }
+
+    private void CheckProgressAchievement(string counterKey, string achievementId)
+    {
+        if (progressCounters.ContainsKey(counterKey))
+        {
+            var achievement = GetAchievementById(achievementId);
+            if (achievement != null && !achievement.isUnlocked)
+            {
+                achievement.currentProgress = progressCounters[counterKey];
+                if (achievement.currentProgress >= achievement.requiredProgress)
+                {
+                    UnlockAchievement(achievementId);
+                }
+                PlayerPrefs.SetInt($"Achievement_{achievement.id}_Progress", achievement.currentProgress);
+            }
         }
     }
 
     public void ReportAction(string actionType)
     {
-        switch (actionType)
+        if (!progressCounters.ContainsKey(actionType))
         {
-            case "FraudPrevention":
-                progressCounters["FraudPrevention"]++;
-                if (progressCounters["FraudPrevention"] >= 5 && !IsAchievementUnlocked("FraudPrevention"))
-                {
-                    UnlockAchievement("FraudPrevention");
-                }
-                break;
-
-            case "EducationPayment":
-                progressCounters["EducationPayment"]++;
-                if (progressCounters["EducationPayment"] >= 5 && !IsAchievementUnlocked("DiligentStudent"))
-                {
-                    UnlockAchievement("DiligentStudent");
-                }
-                break;
-
-            case "DormPayment":
-                progressCounters["DormPayment"]++;
-                if (progressCounters["DormPayment"] >= 5 && !IsAchievementUnlocked("DormLife"))
-                {
-                    UnlockAchievement("DormLife");
-                }
-                break;
+            Debug.LogWarning($"Counter for {actionType} not initialized!");
+            return;
         }
+
+        progressCounters[actionType]++;
+        Debug.Log($"{actionType} progress: {progressCounters[actionType]}");
     }
 
     public void UnlockAchievement(string achievementId)
     {
-        foreach (var achievement in achievements)
+        Achievement achievement = GetAchievementById(achievementId);
+        if (achievement != null && !achievement.isUnlocked)
         {
-            if (achievement.id == achievementId && !achievement.isUnlocked)
-            {
-                achievement.isUnlocked = true;
-                PlayerPrefs.SetInt($"Achievement_{achievement.id}_Unlocked", 1);
-                UpdateAchievementsUI();
+            achievement.isUnlocked = true;
+            PlayerPrefs.SetInt($"Achievement_{achievement.id}_Unlocked", 1);
+            UpdateAchievementsUI();
 
-                notificationQueue.Enqueue(achievement);
-                if (!isShowingNotification)
-                {
-                    StartCoroutine(ShowNotificationQueue());
-                }
-                break;
+            notificationQueue.Enqueue(achievement);
+            if (!isShowingNotification)
+            {
+                StartCoroutine(ShowNotificationQueue());
             }
         }
     }
@@ -223,38 +228,35 @@ public class AchievementSystem : MonoBehaviour
 
     private void ShowAchievementNotification(Achievement achievement)
     {
-        if (notificationPrefab == null || notificationParent == null) return;
+        if (notificationPrefab == null || notificationParent == null)
+        {
+            Debug.LogError("Notification system not configured!");
+            return;
+        }
 
         GameObject notification = Instantiate(notificationPrefab, notificationParent);
         activeNotifications.Add(notification);
 
-        RectTransform rectTransform = notification.GetComponent<RectTransform>();
-        if (rectTransform != null)
-        {
-            rectTransform.anchoredPosition = new Vector2(0, (activeNotifications.Count - 1) * notificationSpacing);
-        }
+        // Настройка RectTransform
+        RectTransform rect = notification.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 1);
+        rect.anchorMax = new Vector2(0.5f, 1);
+        rect.pivot = new Vector2(0.5f, 1);
+        rect.anchoredPosition = new Vector2(0, -30 - ((activeNotifications.Count - 1) * notificationSpacing));
 
-        Image icon = notification.GetComponentInChildren<Image>();
-        TextMeshProUGUI[] texts = notification.GetComponentsInChildren<TextMeshProUGUI>();
+        // Находим компоненты
+        Image icon = notification.transform.Find("Icon")?.GetComponent<Image>();
+        if (icon != null) icon.sprite = achievement.icon;
 
-        if (icon != null)
-        {
-            icon.sprite = achievement.isUnlocked ? achievement.icon : achievement.lockedIcon;
-            icon.color = achievement.isUnlocked ? unlockedColor : lockedColor;
-        }
-
-        if (texts.Length > 0) texts[0].text = achievement.displayName ?? achievement.id;
-        if (texts.Length > 1) texts[1].text = achievement.isUnlocked ?
-            achievement.description ?? "Достижение разблокировано!" :
-            "Новое достижение доступно!";
-
+        // Проигрываем звук
         if (notificationSound != null)
         {
             AudioSource.PlayClipAtPoint(notificationSound, Camera.main.transform.position);
         }
 
+        // Анимация
         StartCoroutine(AnimateNotification(notification, true));
-        StartCoroutine(DestroyNotificationAfterDelay(notification, notificationDuration));
+        StartCoroutine(RemoveNotificationAfterDelay(notification, notificationDuration));
     }
 
     private IEnumerator AnimateNotification(GameObject notification, bool show)
@@ -262,47 +264,55 @@ public class AchievementSystem : MonoBehaviour
         CanvasGroup canvasGroup = notification.GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = notification.AddComponent<CanvasGroup>();
 
-        float targetAlpha = show ? 1f : 0f;
-        float startAlpha = show ? 0f : 1f;
         float duration = 0.3f;
         float elapsed = 0f;
+        float startAlpha = show ? 0f : 1f;
+        float endAlpha = show ? 1f : 0f;
 
         while (elapsed < duration)
         {
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        canvasGroup.alpha = targetAlpha;
+        canvasGroup.alpha = endAlpha;
     }
 
-    private IEnumerator DestroyNotificationAfterDelay(GameObject notification, float delay)
+    private IEnumerator RemoveNotificationAfterDelay(GameObject notification, float delay)
     {
         yield return new WaitForSeconds(delay);
-
         yield return StartCoroutine(AnimateNotification(notification, false));
 
         activeNotifications.Remove(notification);
         Destroy(notification);
-
-        UpdateNotificationsPositions();
+        UpdateNotificationPositions();
     }
 
-    private void UpdateNotificationsPositions()
+    private void UpdateNotificationPositions()
     {
         for (int i = 0; i < activeNotifications.Count; i++)
         {
             RectTransform rt = activeNotifications[i].GetComponent<RectTransform>();
             if (rt != null)
             {
-                rt.anchoredPosition = new Vector2(0, i * notificationSpacing);
+                rt.anchoredPosition = new Vector2(0, -30 - (i * notificationSpacing));
             }
         }
     }
 
+    private Achievement GetAchievementById(string id)
+    {
+        foreach (var achievement in achievements)
+        {
+            if (achievement.id == id) return achievement;
+        }
+        return null;
+    }
+
     public void ReturnToMainMenu()
     {
+        // Закрываем все панели описаний
         foreach (var achievement in achievements)
         {
             if (achievement.descriptionPanel != null)
@@ -311,10 +321,9 @@ public class AchievementSystem : MonoBehaviour
             }
         }
 
-        if (mainPanel != null)
-        {
-            mainPanel.SetActive(true);
-        }
+        // Переключаем панели
+        if (mainPanel != null) mainPanel.SetActive(true);
+        if (achievementsPanel != null) achievementsPanel.SetActive(false);
     }
 
     public bool IsAchievementUnlocked(string achievementId)
@@ -329,14 +338,31 @@ public class AchievementSystem : MonoBehaviour
         return false;
     }
 
+    [ContextMenu("Test Notification")]
+    public void TestNotification()
+    {
+        if (achievements.Length > 0)
+        {
+            UnlockAchievement(achievements[0].id);
+            Debug.Log("Test notification triggered");
+        }
+    }
+
     [ContextMenu("Reset All Achievements")]
     public void ResetAllAchievements()
     {
         foreach (var achievement in achievements)
         {
             achievement.isUnlocked = false;
+            achievement.currentProgress = 0;
             PlayerPrefs.DeleteKey($"Achievement_{achievement.id}_Unlocked");
+            PlayerPrefs.DeleteKey($"Achievement_{achievement.id}_Progress");
         }
+
+        progressCounters["FraudPrevention"] = 0;
+        progressCounters["EducationPayment"] = 0;
+        progressCounters["DormPayment"] = 0;
+
         UpdateAchievementsUI();
         Debug.Log("All achievements reset!");
     }
