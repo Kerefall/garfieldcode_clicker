@@ -35,6 +35,9 @@ public class Clicker : MonoBehaviour
     }
 
     [SerializeField] private TextMeshProUGUI moneyText;
+    public float annualRate = 0.1f;
+
+    private bool _nextIsPositive = true;
 
     private void Awake()
     {
@@ -50,6 +53,23 @@ public class Clicker : MonoBehaviour
     {
         CalculateOfflineMoney();
         UpdateUI();
+        InvokeRepeating(nameof(ChangeRate), 300f, 300f); // 300 сек = 5 минут
+    }
+
+    private void ChangeRate()
+    {
+        float randomValue = UnityEngine.Random.value; // Random.value даЄт 0..1
+        double change = randomValue switch
+        {
+            < 0.5f => 1.0,  // 50%
+            < 0.8f => 2.0,  // 30%
+            _ => 3.0        // 20%
+        };
+
+        annualRate += (float)(_nextIsPositive ? change : -change);
+        _nextIsPositive = !_nextIsPositive;
+
+        Debug.Log($"New rate: {annualRate}%");
     }
 
     [ContextMenu("—бросить весь прогресс")]

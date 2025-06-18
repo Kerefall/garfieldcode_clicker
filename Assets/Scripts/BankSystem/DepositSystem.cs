@@ -18,7 +18,6 @@ public class BankSystem : MonoBehaviour
     public Button withdrawButton;
 
     [Header("Настройки вклада")]
-    [SerializeField] private float annualRate = 0.10f;
     [SerializeField] private float maxDepositDuration = 365f; // Max time vklada
     [Tooltip("Время одного игрового круга в минутах")]
     [SerializeField] private float oneCircleTime = 5f;
@@ -49,7 +48,7 @@ public class BankSystem : MonoBehaviour
     {
         currentBalanceText.text = $"Баланс: {Clicker.Instance.Money:F2}";
         depositBalanceText.text = $"{depositAmount:F2}";
-        interestRateText.text = $"{(annualRate - 0.05f) * 100}%";
+        interestRateText.text = $"{(Clicker.Instance.annualRate - 0.05f) * 100}%";
 
         if (depositAmount > 0)
         {
@@ -122,7 +121,7 @@ public class BankSystem : MonoBehaviour
 
             if (depositDays < depositDurationDays)
             {
-                var depositRate = (annualRate - 0.05f) * 100;
+                var depositRate = (Clicker.Instance.annualRate - 0.05f) * 100;
                 var circleInterest = (depositAmount * depositRate * depositDurationDays) / (100 * 365);
                 depositInterest += circleInterest;
                 depositDays += 1;

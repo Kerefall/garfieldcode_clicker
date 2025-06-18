@@ -2,51 +2,79 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+
 public class MailMessage : MonoBehaviour
 {
+    [Header("Alert Settings")]
+    public GameObject alertPrefab; // Перетащите сюда префаб Alert'а
+    public Transform alertParent; // Обычно Main Canvas
+
+    private GameObject currentAlert;
+
     public TextMeshProUGUI messageText;
-    public Transform buttonsParent;
-    public GameObject buttonPrefab;
-    public GameObject alertPopup;
-    public TextMeshProUGUI alertText;
+    public Button payButton;
+    public Button ignoreButton;
+    //public TextMeshProUGUI payButtonNote;
+    //public TextMeshProUGUI ignoreButtonNote;
 
     public void SetMessage(string text)
     {
         messageText.text = text;
     }
 
-    public Button AddButton(string buttonText, UnityEngine.Events.UnityAction action)
+    public void SetupButtons(
+        UnityEngine.Events.UnityAction payAction,
+        UnityEngine.Events.UnityAction ignoreAction,
+        string payNote = "",
+        string ignoreNote = "")
     {
-        GameObject buttonObj = Instantiate(buttonPrefab, buttonsParent);
-        Button button = buttonObj.GetComponent<Button>();
-        TextMeshProUGUI text = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+        // Настройка кнопки "Оплатить"
+        payButton.onClick.RemoveAllListeners();
+        payButton.onClick.AddListener(payAction);
 
-        text.text = buttonText;
-        button.onClick.AddListener(action);
-
-
-        LayoutRebuilder.ForceRebuildLayoutImmediate(buttonsParent.GetComponent<RectTransform>());
-        return button;
+        // Настройка кнопки "Игнорировать"
+        ignoreButton.onClick.RemoveAllListeners();
+        ignoreButton.onClick.AddListener(ignoreAction);
     }
 
-    public void AddNoteToButton(Button button, string noteText)
+
+    public void SetPayButtonInteractable(bool interactable)
     {
-        if (string.IsNullOrEmpty(noteText)) return;
-
-        GameObject noteObj = new GameObject("Note");
-        noteObj.transform.SetParent(button.transform);
-        TextMeshProUGUI noteTextComponent = noteObj.AddComponent<TextMeshProUGUI>();
-
-        noteTextComponent.text = noteText;
-        noteTextComponent.fontSize = 10;
-        noteTextComponent.color = Color.gray;
-
-        // TODO: RectTransform для позиционирования заметки
+        payButton.interactable = interactable;
     }
 
-    public void ShowAlert(string message)
+
+
+    public void ShowAlert(string message, bool closeMessage = false)
     {
-        alertText.text = message;
-        alertPopup.SetActive(true);
+        // Удаляем предыдущий Alert, если есть
+        if (currentAlert != null)
+        {
+            Destroy(currentAlert);
+        }
+
+        // Создаем новый Alert
+        currentAlert = Instantiate(alertPrefab, alertParent);
+        currentAlert.SetActive(true);
+
+        // Настраиваем текст
+        TextMeshProUGUI alertText = currentAlert.GetComponentInChildren<TextMeshProUGUI>();
+        if (alertText != null)
+        {
+            alertText.text = message;
+        }
+
+        // Настраиваем кнопку
+        Button okButton = currentAlert.GetComponentInChildren<Button>();
+        if (okButton != null)
+        {
+            okButton.onClick.AddListener(() => {
+                Destroy(currentAlert);
+                if (closeMessage)
+                {
+                    Destroy(gameObject); // Уничтожаем текущее письмо
+                }
+            });
+        }
     }
 }

@@ -46,7 +46,9 @@ public class ClickerUpgradeSystem : MonoBehaviour
         {
             UpdateButtonsInteractivity();
             uiUpdateTimer = 0f;
+            InitializeUpgrades();
         }
+        
     }
 
     private void InitializeUpgrades()
@@ -75,7 +77,7 @@ public class ClickerUpgradeSystem : MonoBehaviour
 
     private int CalculateUpgradeCost(Upgrade upgrade)
     {
-        return upgrade.baseCost * (upgrade.currentLevel + 1);
+        return (int)((upgrade.baseCost * (upgrade.currentLevel + 1)) * (1 + (Clicker.Instance.annualRate)));
     }
 
     private void BuyUpgrade(int upgradeIndex)

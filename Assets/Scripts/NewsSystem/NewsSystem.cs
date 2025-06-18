@@ -1,241 +1,298 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net.Mail;
 
 public class MailSystem : MonoBehaviour
 {
+    [Header("References")]
     public GameObject mailTab;
     public Button activateSystemButton;
     public GameObject mailMessagePrefab;
-    public Transform messagesContainer;
+    public Transform messageDisplayArea;
+    public GameObject noMessagesText;
 
-    private float educationTimer = 0f; // таймер оплаты обучения
-    private float homeTimer = 0f; // таймер оплаты общаги
-    private float scamTimer = 0f; // таймер скама
+    [Header("Timers")]
+    public float educationInterval = 420f; // 7 минут
+    public float homeInterval = 300f;     // 5 минут
+    public float scamInterval = 300f;     // 5 минут
 
-    private int educationAmount = 10000; // стоимость обучения
-    private int homeAmount = 1000; // стоимомость общаги
+    [Header("Costs")]
+    public int educationAmount = 10000;
+    public int homeAmount = 1000;
 
-    private float playerMoney;
+    private float educationTimer = 0f;
+    private float homeTimer = 0f;
+    private float scamTimer = 0f;
+    private Queue<GameObject> messageQueue = new Queue<GameObject>();
+    private GameObject currentMessage;
 
-    public int isSystemActive
+    private int IsSystemActive
     {
         get => PlayerPrefs.GetInt("IsNewsSystemActive", 0);
-        private set => PlayerPrefs.SetInt("IsNewsSystemActive", value);
+        set => PlayerPrefs.SetInt("IsNewsSystemActive", value);
     }
 
     private void Start()
     {
         activateSystemButton.onClick.AddListener(ActivateSystem);
-        playerMoney = Clicker.Instance.Money;
+        noMessagesText.SetActive(false);
     }
 
     private void Update()
     {
-        if (isSystemActive == 0) return;
-        else ActivateSystem();
+        if (IsSystemActive == 0) return;
 
-            educationTimer += Time.deltaTime;
+        UpdateTimers();
+        CheckForNewMessages();
+    }
+
+    private void UpdateTimers()
+    {
+        educationTimer += Time.deltaTime;
         homeTimer += Time.deltaTime;
         scamTimer += Time.deltaTime;
+    }
 
-        // чек таймеров
-        if (educationTimer >= 10f) // 7 мин
+    private void CheckForNewMessages()
+    {
+        
+
+        if (educationTimer >= educationInterval)
         {
             educationTimer = 0f;
-            TriggerEducationEvent();
+            CreateEducationMessage();
         }
 
-        if (homeTimer >= 300f) // 5 мин
+        if (homeTimer >= homeInterval)
         {
             homeTimer = 0f;
-            TriggerHomeEvent();
+            CreateHomeMessage();
         }
 
-        if (scamTimer >= 300f) // 5 мин
+        if (scamTimer >= scamInterval)
         {
             scamTimer = 0f;
-            TriggerRandomScamEvent();
+            CreateRandomScamMessage();
         }
+
+        if (currentMessage == null && messageQueue.Count > 0)
+            ShowNextMessage();
     }
 
     private void ActivateSystem()
     {
-        isSystemActive = 1;
+        IsSystemActive = 1;
         activateSystemButton.gameObject.SetActive(false);
     }
 
-    private void TriggerEducationEvent()
+    public void ShowNextMessage()
     {
-        float chance = Random.Range(0f, 1f);
-
-        if (chance <= 0.6f)
+        if (currentMessage != null)
         {
-            // норм платеж 60%
-            CreateEducationMessage(
-                "Оплатите обучение (fin.pay.РФ): сумма " + educationAmount + " рублей",
-                true,
-                "опробуйте инструмент Кредит, если не хватает",
-                "в следующий раз сумма будет выше"
-            );
+            Destroy(currentMessage);
+            currentMessage = null;
+        }
+
+        if (messageQueue.Count > 0)
+        {
+            currentMessage = messageQueue.Dequeue();
+            currentMessage.SetActive(true);
+            noMessagesText.SetActive(false);
         }
         else
         {
-            // скам 40%
-            CreateEducationMessage(
-                "Оплатите обучение (f1n.pay.net): сумма " + educationAmount + " рублей",
-                false,
-                "",
-                "в следующий раз сумма будет выше"
-            );
+            noMessagesText.SetActive(true);
         }
     }
 
-    private void CreateEducationMessage(string messageText, bool checkMoney, string payNote, string ignoreNote)
+    private void CreateEducationMessage()
     {
-        GameObject messageObj = Instantiate(mailMessagePrefab, messagesContainer);
+        bool isLegit = Random.Range(0f, 1f) <= 0.6f;
+        string sender = isLegit ? "fin.pay.РФ" : "f1n.pay.net";
+
+        GameObject messageObj = Instantiate(mailMessagePrefab, messageDisplayArea);
+        messageObj.SetActive(false);
+
         MailMessage message = messageObj.GetComponent<MailMessage>();
+        message.SetMessage($"Оплатите обучение ({sender}): сумма {educationAmount} рублей");
 
-        message.SetMessage(messageText);
+        message.SetupButtons(
+            payAction: () => HandleEducationPayment(isLegit, message),
+            ignoreAction: () => HandleEducationIgnore(isLegit, message)
+        );
 
-        Button payButton = message.AddButton("Оплатить", () => {
-            if (checkMoney)
-            {
-                if (playerMoney >= educationAmount)
-                {
-                    playerMoney -= educationAmount;
-                    Destroy(messageObj);
-                }
-            }
-            else
-            {
-                // скамнулись мамонты
-                playerMoney = 0f;
-                message.ShowAlert("Вы стали жертвой мошенников и лишились средств, обращайте внимание на ссылки!");
-            }
-        });
-
-        if (checkMoney)
+        if (isLegit)
         {
-            payButton.interactable = playerMoney >= educationAmount;
-            message.AddNoteToButton(payButton, payNote);
+            message.SetPayButtonInteractable(Clicker.Instance.Money >= educationAmount);
         }
 
-        Button ignoreButton = message.AddButton("Игнорировать", () => {
-            if (checkMoney)
-            {
-                educationAmount += 500;
-                Destroy(messageObj);
-            }
-            else
-                message.ShowAlert("Вы молодец, это были мошенники!");
-        });
+        messageQueue.Enqueue(messageObj);
 
-        message.AddNoteToButton(ignoreButton, ignoreNote);
+        if (currentMessage == null && messageQueue.Count > 0)
+        {
+            ShowNextMessage();
+        }
     }
 
-    private void TriggerHomeEvent()
+    private void HandleEducationPayment(bool isLegit, MailMessage message)
     {
-        float chance = Random.Range(0f, 1f);
-
-        if (chance <= 0.6f)
+        if (isLegit)
         {
-            // норм платеж 60%
-            CreateHomeMessage(
-                "Оплатите общежитие (fin.pay.RU): сумма " + homeAmount + " рублей",
-                true,
-                "опробуйте инструмент Кредит, если не хватает",
-                "в следующий раз сумма будет выше"
-            );
+            if (Clicker.Instance.Money >= educationAmount)
+            {
+                Clicker.Instance.Money -= educationAmount;
+                ShowNextMessage();
+            }
         }
         else
         {
-            // скам 40%
-            CreateHomeMessage(
-                "Оплатите общежитие (f1n.pay.net): сумма " + homeAmount + " рублей",
-                false,
-                "",
-                "в следующий раз сумма будет выше"
-            );
+            Clicker.Instance.Money = 0f;
+            message.ShowAlert("Вы стали жертвой мошенников и лишились средств!", true);
         }
     }
 
-    private void CreateHomeMessage(string messageText, bool checkMoney, string payNote, string ignoreNote)
+    private void HandleEducationIgnore(bool isLegit, MailMessage message)
     {
-        // Аналогично CreateTuitionMessage, но с dormitoryAmount и +100 при игноре
+        if (isLegit)
+        {
+            educationAmount += 500;
+        }
+        message.ShowAlert(isLegit ? "Сумма увеличена!" : "Вы молодец, это были мошенники!", true);
     }
 
-    private void TriggerRandomScamEvent()
+    private void CreateHomeMessage()
     {
-        int randomEvent = Random.Range(0, 3);
+        bool isLegit = Random.Range(0f, 1f) <= 0.6f;
+        string sender = isLegit ? "fin.pay.RU" : "f1n.pay.net";
 
-        switch (randomEvent)
+        GameObject messageObj = Instantiate(mailMessagePrefab, messageDisplayArea);
+        messageObj.SetActive(false);
+
+        MailMessage message = messageObj.GetComponent<MailMessage>();
+        message.SetMessage($"Оплатите общежитие ({sender}): сумма {homeAmount} рублей");
+
+        message.SetupButtons(
+            payAction: () => HandleHomePayment(isLegit, message),
+            ignoreAction: () => HandleHomeIgnore(isLegit, message),
+            payNote: isLegit ? "Попробуйте кредит, если не хватает" : "",
+            ignoreNote: "В следующий раз сумма будет выше"
+        );
+
+        if (isLegit)
         {
-            case 0:
-                CreateWalletHackMessage();
-                break;
-            case 1:
-                CreateMomScamMessage();
-                break;
-            case 2:
-                CreateUniversityTestMessage();
-                break;
+            message.SetPayButtonInteractable(Clicker.Instance.Money >= homeAmount);
+        }
+
+        messageQueue.Enqueue(messageObj);
+
+        if (currentMessage == null && messageQueue.Count > 0)
+        {
+            ShowNextMessage();
+        }
+    }
+
+    private void HandleHomePayment(bool isLegit, MailMessage message)
+    {
+        if (isLegit)
+        {
+            if (Clicker.Instance.Money >= homeAmount)
+            {
+                Clicker.Instance.Money -= homeAmount;
+                ShowNextMessage();
+            }
+        }
+        else
+        {
+            Clicker.Instance.Money = 0f;
+            message.ShowAlert("Вы стали жертвой мошенников и лишились средств!", true);
+        }
+    }
+
+    private void HandleHomeIgnore(bool isLegit, MailMessage message)
+    {
+        if (isLegit)
+        {
+            homeAmount += 100;
+        }
+        message.ShowAlert(isLegit ? "Сумма увеличена!" : "Вы молодец, это были мошенники!", true);
+    }
+
+    private void CreateRandomScamMessage()
+    {
+        int scamType = Random.Range(0, 3);
+
+        switch (scamType)
+        {
+            case 0: CreateWalletHackMessage(); break;
+            case 1: CreateMomScamMessage(); break;
+            case 2: CreateUniversityTestMessage(); break;
         }
     }
 
     private void CreateWalletHackMessage()
     {
-        GameObject messageObj = Instantiate(mailMessagePrefab, messagesContainer);
+        GameObject messageObj = Instantiate(mailMessagePrefab, messageDisplayArea);
+        messageObj.SetActive(false);
+
         MailMessage message = messageObj.GetComponent<MailMessage>();
+        message.SetMessage("Ваш кошелёк пытаются взломать, срочно введите данные карты!");
 
-        message.SetMessage("Ваш кошелёк пытаются взломать, срочно введите данные с вашей карты и мы убережём ваши средства");
+        message.SetupButtons(
+            payAction: () => {
+                Clicker.Instance.Money = 0f;
+                message.ShowAlert("Вы стали жертвой мошенников!", true);
+            },
+            ignoreAction: () => {
+                message.ShowAlert("Вы молодец, это были мошенники!", true);
+            }
+        );
 
-        message.AddButton("Ввести данные", () => {
-            playerMoney = 0f;
-            message.ShowAlert("Вы стали жертвой мошенников и лишились средств, банки не требуют данных карты!");
-        });
-
-        message.AddButton("Игнорировать", () => {
-            message.ShowAlert("Вы молодец, это были мошенники!");
-        });
+        messageQueue.Enqueue(messageObj);
     }
 
     private void CreateMomScamMessage()
     {
-        GameObject messageObj = Instantiate(mailMessagePrefab, messagesContainer);
+        GameObject messageObj = Instantiate(mailMessagePrefab, messageDisplayArea);
+        messageObj.SetActive(false);
+
         MailMessage message = messageObj.GetComponent<MailMessage>();
+        message.SetMessage("Привет, сынок, скинь 10 тысяч, срочно нужно!");
 
-        message.SetMessage("Привет, сынок, скинь, пожалуйста, 10 тысяч по этому номеру, срочно нужно, мы тебе потом обязательно вернём. Люблю тебя!");
-
-        message.AddButton("Перевести деньги", () => {
-            if (playerMoney >= 10000)
-            {
-                playerMoney -= 10000f;
-                message.ShowAlert("Вы стали жертвой мошенников и лишились средств, лучше уточняйте такое по видеозвонку!");
+        message.SetupButtons(
+            payAction: () => {
+                if (Clicker.Instance.Money >= 10000)
+                {
+                    Clicker.Instance.Money -= 10000;
+                    message.ShowAlert("Вы стали жертвой мошенников!", true);
+                }
+            },
+            ignoreAction: () => {
+                message.ShowAlert("Вы молодец, это были мошенники!", true);
             }
-        });
+        );
 
-        message.AddButton("Позвонить маме и уточнить", () => {
-            message.ShowAlert("Вы молодец, это были мошенники!");
-        });
+        messageQueue.Enqueue(messageObj);
     }
 
     private void CreateUniversityTestMessage()
     {
-        GameObject messageObj = Instantiate(mailMessagePrefab, messagesContainer);
+        GameObject messageObj = Instantiate(mailMessagePrefab, messageDisplayArea);
+        messageObj.SetActive(false);
+
         MailMessage message = messageObj.GetComponent<MailMessage>();
+        message.SetMessage("Пройти обязательное тестирование по ссылке http://edu1est.net/");
 
-        message.SetMessage("Здравствуйте! Вам пишет администрация университета. Вам нужно пройти обязательное государственное тестирование по ссылке http://edu1est.net/\nДля прохождения авторизируйтесь через госуслуги");
+        message.SetupButtons(
+            payAction: () => {
+                Clicker.Instance.Money = 0f;
+                message.ShowAlert("Вы стали жертвой мошенников!", true);
+            },
+            ignoreAction: () => {
+                message.ShowAlert("Вы молодец, это были мошенники!", true);
+                ShowNextMessage();
+            }
+        );
 
-        message.AddButton("Перейти по ссылке", () => {
-            playerMoney = 0f;
-            message.ShowAlert("Вы стали жертвой мошенников и лишились средств, обращайте внимание на ссылки!");
-        });
-
-        message.AddButton("Уточнить у классного руководителя", () => {
-            message.ShowAlert("Вы молодец, это были мошенники!");
-        });
+        messageQueue.Enqueue(messageObj);
     }
 }
