@@ -5724,64 +5724,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 324716050}
   m_CullTransparentMesh: 1
---- !u!1 &333630857
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 333630858}
-  - component: {fileID: 333630859}
-  m_Layer: 5
-  m_Name: NewsSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &333630858
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 333630857}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 90}
-  m_LocalScale: {x: 0.003949447, y: 0.003949447, z: 0.003949447}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &333630859
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 333630857}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16dd2f5d2295d0643a34c28e2464b6a4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mailTab: {fileID: 266848831}
-  activateSystemButton: {fileID: 271587607}
-  mailMessagePrefab: {fileID: 106570620418424729, guid: b162b0435269d964e892aae809f7db56, type: 3}
-  messageDisplayArea: {fileID: 0}
-  noMessagesText: {fileID: 0}
-  educationInterval: 420
-  homeInterval: 300
-  scamInterval: 300
-  educationAmount: 10000
-  homeAmount: 1000
 --- !u!1 &339906233
 GameObject:
   m_ObjectHideFlags: 0
@@ -29037,9 +28979,9 @@ MonoBehaviour:
   mailMessagePrefab: {fileID: 1212989963960374864, guid: b162b0435269d964e892aae809f7db56, type: 3}
   messageDisplayArea: {fileID: 2143466825}
   noMessagesText: {fileID: 1280441686808423750, guid: e1cb2912f38fa6541aa04e2572a5e0e5, type: 3}
-  educationInterval: 10
-  homeInterval: 300
-  scamInterval: 300
+  educationInterval: 30
+  homeInterval: 20
+  scamInterval: 15
   educationAmount: 10000
   homeAmount: 1000
 --- !u!1 &1516206192
@@ -39262,5 +39204,4 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 1238522255}
   - {fileID: 1584563780}
-  - {fileID: 333630858}
   - {fileID: 265525403}
