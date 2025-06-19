@@ -68,7 +68,7 @@ public class CreditSystem : MonoBehaviour
     {
         if (Clicker.Instance != null && currentBalanceText != null)
         {
-            currentBalanceText.text = $"Баланс: {Clicker.Instance.Money:F2}₽";
+            currentBalanceText.text = $"Баланс: {Clicker.Instance.Money:F2}";
             currentBalanceText.ForceMeshUpdate();
             Canvas.ForceUpdateCanvases();
         }
